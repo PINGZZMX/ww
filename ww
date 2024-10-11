@@ -1,9 +1,9 @@
-print ("V1")
+print ("V2")
 local autoSelectItems = {}
-local success, result = pcall(loadstring(loadingString))
+local success, result = pcall(loadstring(loadingString))  -- Load the loading string
 
 if success and result then
-    autoSelectItems = result
+    autoSelectItems = result  -- Result should now be the list of items
 else
     print("Failed to load items:", result)  -- Print an error if it fails
 end
