@@ -1,3 +1,4 @@
+print ("V1")
 local autoSelectItems = {}
 local success, result = pcall(loadstring(loadingString))
 
