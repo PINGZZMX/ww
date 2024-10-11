@@ -1,5 +1,6 @@
 local autoSelectItems = {}
 local success, result = pcall(loadstring(loadingString))
+
 if success and result then
     autoSelectItems = result
 else
@@ -52,6 +53,7 @@ local itemList = {
 -- Sort the item list alphabetically
 table.sort(itemList)
 
+-- Automatically select default items from autoSelectItems
 for _, item in ipairs(autoSelectItems) do
     if table.find(itemList, item) then
         selectedItems[item] = true  -- Mark as selected
@@ -393,13 +395,6 @@ local function createGUI()
             end
         end
     end)
-
-    -- Adjusts close button position depending on mobile capabilities
-    if UserInputService.TouchEnabled then
-        closeButton.Position = UDim2.new(1, -50, 0.5, -20)  -- Centered vertically on the right for mobile
-    else
-        closeButton.Position = UDim2.new(1, -50, 0, 10)  -- Anchored for PC
-    end
 
     -- Show the main tab by default
     showTab("main")
