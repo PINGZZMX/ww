@@ -6,8 +6,8 @@ local UserInputService = game:GetService("UserInputService")
 
 local Vector2new, CFramenew, Color3fromRGB, Drawingnew = Vector2.new, CFrame.new, Color3.fromRGB, Drawing.new
 
--- Define your json variable with default settings
-local json = { keepUI = true }  -- Initialize with a default value
+-- Ensure json is properly initialized (you can replace it with actual json loading if needed)
+local json = { keepUI = true } -- Example initialization
 
 getgenv().PinguinHub = getgenv().PinguinHub or {}
 getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
@@ -30,24 +30,25 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
 
 local Environment = getgenv().PinguinHub.WallHack
 
+-- Placeholder function for queueteleport
+local function queueteleport(code)
+    if type(code) == "function" then
+        code()
+    else
+        loadstring(code)() -- This is potentially unsafe, just for demonstration
+    end
+end
+
 -- Teleport handling and UI persistence
 local KeepUI = json.keepUI ~= nil and json.keepUI or true
-local queueteleport = true -- Add any logic here to determine if teleporting is required
+local TeleportCheck = false
 
-if queueteleport then
-    local TeleportCheck = false
-
-    Players.LocalPlayer.OnTeleport:Connect(function(State)
-        if KeepUI and not TeleportCheck then
-            TeleportCheck = true
-            queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/PUSCRIPTS/PINGUIN/refs/heads/main/RivalsV1'))()")
-        end
-    end)
-
-    updatesaves()  -- Call to save the current state or data
-else
-    notify('Incompatible Exploit', 'Your exploit does not support this command (missing queue_on_teleport)')
-end
+Players.LocalPlayer.OnTeleport:Connect(function(State)
+    if KeepUI and not TeleportCheck then
+        TeleportCheck = true
+        queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/PUSCRIPTS/PINGUIN/refs/heads/main/RivalsV1'))()")
+    end
+end)
 
 local function IsPlayerPinguinmate(Player)
     if Environment.PinguinmateStatus[Player.UserId] ~= nil then
@@ -72,7 +73,7 @@ local function IsPlayerTeammate(Player)
         return Environment.PinguinmateStatus[Player.UserId]
     end
 
-    if Environment.Settings.BoxSettings.TeamCheck then -- Check if team check is enabled
+    if Environment.Settings.BoxSettings.TeamCheck then  -- Check if team check is enabled
         local character = workspace:FindFirstChild(Player.Name)
         if character and character:FindFirstChild("HumanoidRootPart") then
             local isTeammate = character.HumanoidRootPart:FindFirstChild("TeammateLabel") ~= nil
@@ -89,7 +90,7 @@ local function CreateBox(Player)
     local Box = {}
     Box.Square = Drawingnew("Square")
     Box.Square.Color = Environment.Settings.BoxSettings.Color
-    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency
+    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency  -- Start fully transparent (invisible)
     Box.Square.Thickness = Environment.Settings.BoxSettings.Thickness
     Box.Square.Filled = Environment.Settings.BoxSettings.Filled
 
@@ -327,7 +328,7 @@ local function CreateGui()
         },
         FOVSettings = {
             Radius = 150,
-            Color = Color3fromRGB(255, 255, 255),
+            Color = Color3fromRGB(255, 255, 255), 
             LockedColor = Color3fromRGB(255, 80, 80), 
             Thickness = 1,
             Transparency = 0.5,
