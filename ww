@@ -1,54 +1,61 @@
+-- Main script starts here
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
 local Vector2new, CFramenew, Color3fromRGB, Drawingnew = Vector2.new, CFrame.new, Color3.fromRGB, Drawing.new
 
--- Ensure json is properly initialized (you can replace it with actual json loading if needed)
-local json = { keepUI = true } -- Example initialization
+-- Define the file path for settings
+local settingsFilePath = "pinguinautov1.txt"
 
-getgenv().PinguinHub = getgenv().PinguinHub or {}
-getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
-    Settings = {
-        Enabled = true,
-        Pinguin = true,
-        BoxSettings = {
-            Enabled = false,  -- Start with boxes off
-            Type = 1,
-            Color = Color3fromRGB(255, 255, 255),
-            Transparency = 0,  -- Fully transparent initially (invisible)
-            Thickness = 1,
-            Filled = false,
-            TeamCheck = true -- Added team check for ESP
-        }
-    },
-    WrappedPlayers = {},
-    PinguinmateStatus = {}
-}
-
-local Environment = getgenv().PinguinHub.WallHack
-
--- Placeholder function for queueteleport
-local function queueteleport(code)
-    if type(code) == "function" then
-        code()
-    else
-        loadstring(code)() -- This is potentially unsafe, just for demonstration
+-- Function to read settings from file
+local function readSettings()
+    if isfile(settingsFilePath) then
+        local settingsData = readfile(settingsFilePath)
+        return HttpService:JSONDecode(settingsData)  -- Decode JSON
     end
+    return nil  -- Return nil if settings file does not exist
 end
 
--- Teleport handling and UI persistence
-local KeepUI = json.keepUI ~= nil and json.keepUI or true
-local TeleportCheck = false
+-- Function to write settings to file
+local function writeSettings(data)
+    local encodedData = HttpService:JSONEncode(data)
+    writefile(settingsFilePath, encodedData)  -- Save settings as JSON
+end
 
-Players.LocalPlayer.OnTeleport:Connect(function(State)
-    if KeepUI and not TeleportCheck then
-        TeleportCheck = true
-        queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/PUSCRIPTS/PINGUIN/refs/heads/main/RivalsV1'))()")
-    end
-end)
+-- Load existing settings or set default ones
+local loadedSettings = readSettings()
+local Environment = getgenv().PinguinHub and getgenv().PinguinHub.WallHack or {}
+
+if loadedSettings then
+    Environment = loadedSettings  -- Use loaded settings
+else
+    -- Default settings
+    Environment = {
+        Settings = {
+            Enabled = true,
+            Pinguin = true,
+            BoxSettings = {
+                Enabled = false,  -- Start with boxes off
+                Type = 1,
+                Color = Color3fromRGB(255, 255, 255),
+                Transparency = 0,  -- Fully transparent initially (invisible)
+                Thickness = 1,
+                Filled = false,
+                TeamCheck = true  -- Added team check for ESP
+            }
+        },
+        WrappedPlayers = {},
+        PinguinmateStatus = {}
+    }
+end
+
+getgenv().PinguinHub = getgenv().PinguinHub or {}
+getgenv().PinguinHub.WallHack = Environment
 
 local function IsPlayerPinguinmate(Player)
     if Environment.PinguinmateStatus[Player.UserId] ~= nil then
@@ -90,7 +97,7 @@ local function CreateBox(Player)
     local Box = {}
     Box.Square = Drawingnew("Square")
     Box.Square.Color = Environment.Settings.BoxSettings.Color
-    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency  -- Start fully transparent (invisible)
+    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency
     Box.Square.Thickness = Environment.Settings.BoxSettings.Thickness
     Box.Square.Filled = Environment.Settings.BoxSettings.Filled
 
@@ -160,6 +167,10 @@ local function RefreshBoxes()
     end
 end
 
+local function SaveBoxSettings()
+    writeSettings(Environment)  -- Save settings when called
+end
+
 -- Create the GUI
 local function CreateGui()
     local ScreenGui = Instance.new("ScreenGui")
@@ -178,7 +189,7 @@ local function CreateGui()
     local PredictionBox = Instance.new("TextBox")
     PredictionBox.Size = UDim2.new(0, 100, 0, 30)
     PredictionBox.Position = UDim2.new(0, 150, 0.125, 0)
-    PredictionBox.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
+    PredictionBox.BackgroundColor3 = Color3fromRGB(33, 33, 33)
     PredictionBox.TextColor3 = Color3.fromRGB(255, 255, 255)
     PredictionBox.PlaceholderText = "Prediction (0-10)"
     PredictionBox.ClearTextOnFocus = false
@@ -266,6 +277,7 @@ local function CreateGui()
             Environment.Settings.BoxSettings.Transparency = 0
             BoxesButton.BackgroundColor3 = Color3fromRGB(33, 33, 33)
         end
+        SaveBoxSettings() -- Save box settings
         for _, PlayerBox in pairs(Environment.WrappedPlayers) do
             PlayerBox.Square.Transparency = Environment.Settings.BoxSettings.Transparency
         end
@@ -275,7 +287,7 @@ local function CreateGui()
     ESPBoxesLabel.Size = UDim2.new(0, 80, 0, 30)
     ESPBoxesLabel.Position = UDim2.new(0.6, -150, 0.275, -25)
     ESPBoxesLabel.Text = "Boxes"
-    ESPBoxesLabel.TextColor3 = Color3fromRGB(255, 255, 255)
+    ESPBoxesLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     ESPBoxesLabel.BackgroundTransparency = 1
     ESPBoxesLabel.TextSize = 20
     ESPBoxesLabel.Font = Enum.Font.SourceSans
@@ -298,7 +310,7 @@ local function CreateGui()
     AimbotLabel.Size = UDim2.new(0, 80, 0, 30)
     AimbotLabel.Position = UDim2.new(0.6, -150, 0.175, -25)
     AimbotLabel.Text = "Aimbot"
-    AimbotLabel.TextColor3 = Color3fromRGB(255, 255, 255)
+    AimbotLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     AimbotLabel.BackgroundTransparency = 1
     AimbotLabel.TextSize = 20
     AimbotLabel.Font = Enum.Font.SourceSans
@@ -309,7 +321,7 @@ local function CreateGui()
     PinguinLabel.Size = UDim2.new(0, 150, 0, 30)
     PinguinLabel.Position = UDim2.new(0, 100, 0, 0)
     PinguinLabel.Text = "PinguinRivalsV1"
-    PinguinLabel.TextColor3 = Color3fromRGB(255, 255, 255)
+    PinguinLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     PinguinLabel.BackgroundTransparency = 1
     PinguinLabel.TextSize = 25
     PinguinLabel.Font = Enum.Font.SourceSans
@@ -336,7 +348,7 @@ local function CreateGui()
         },
         Locked = nil,
         FOVCircle = Drawingnew("Circle"),
-        TeammateStatus = {} 
+        TeammateStatus = {}
     }
 
     AimbotEnvironment.FOVCircle.Visible = AimbotEnvironment.FOVSettings.Visible
@@ -497,3 +509,12 @@ end
 
 CreateGui()  -- Create the GUI
 RefreshBoxes()  -- Refresh the boxes if enabled
+
+-- Auto-reload when server hopping
+Players.LocalPlayer.OnTeleport:Connect(function(State)
+    if State == Enum.TeleportState.Finished then
+        print("Successfully entered a new server. Reloading the script...")
+        task.wait(1) -- To ensure all assets have fully loaded.
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/PINGZZMX/ww/refs/heads/main/ww"))() -- Change to your script URL
+    end
+end)
