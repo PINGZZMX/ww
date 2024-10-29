@@ -6,6 +6,9 @@ local UserInputService = game:GetService("UserInputService")
 
 local Vector2new, CFramenew, Color3fromRGB, Drawingnew = Vector2.new, CFrame.new, Color3.fromRGB, Drawing.new
 
+-- Define your json variable with default settings
+local json = { keepUI = true }  -- Initialize with a default value
+
 getgenv().PinguinHub = getgenv().PinguinHub or {}
 getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
     Settings = {
@@ -28,18 +31,14 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
 local Environment = getgenv().PinguinHub.WallHack
 
 -- Teleport handling and UI persistence
-json = json or {} -- Ensure json is defined
-if json.keepUI ~= nil then 
-    KeepUI = json.keepUI 
-else 
-    KeepUI = true 
-end
+local KeepUI = json.keepUI ~= nil and json.keepUI or true
+local queueteleport = true -- Add any logic here to determine if teleporting is required
 
 if queueteleport then
     local TeleportCheck = false
 
     Players.LocalPlayer.OnTeleport:Connect(function(State)
-        if KeepUI and (not TeleportCheck) then
+        if KeepUI and not TeleportCheck then
             TeleportCheck = true
             queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/PUSCRIPTS/PINGUIN/refs/heads/main/RivalsV1'))()")
         end
@@ -73,7 +72,7 @@ local function IsPlayerTeammate(Player)
         return Environment.PinguinmateStatus[Player.UserId]
     end
 
-    if Environment.Settings.BoxSettings.TeamCheck then  -- Check if team check is enabled
+    if Environment.Settings.BoxSettings.TeamCheck then -- Check if team check is enabled
         local character = workspace:FindFirstChild(Player.Name)
         if character and character:FindFirstChild("HumanoidRootPart") then
             local isTeammate = character.HumanoidRootPart:FindFirstChild("TeammateLabel") ~= nil
@@ -90,7 +89,7 @@ local function CreateBox(Player)
     local Box = {}
     Box.Square = Drawingnew("Square")
     Box.Square.Color = Environment.Settings.BoxSettings.Color
-    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency  -- Start fully transparent (invisible)
+    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency
     Box.Square.Thickness = Environment.Settings.BoxSettings.Thickness
     Box.Square.Filled = Environment.Settings.BoxSettings.Filled
 
@@ -328,7 +327,7 @@ local function CreateGui()
         },
         FOVSettings = {
             Radius = 150,
-            Color = Color3fromRGB(255, 255, 255), 
+            Color = Color3fromRGB(255, 255, 255),
             LockedColor = Color3fromRGB(255, 80, 80), 
             Thickness = 1,
             Transparency = 0.5,
