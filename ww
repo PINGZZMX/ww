@@ -25,11 +25,10 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
     PinguinmateStatus = {}
 }
 
-json.keepUI = true
-
 local Environment = getgenv().PinguinHub.WallHack
 
 -- Teleport handling and UI persistence
+json = json or {} -- Ensure json is defined
 if json.keepUI ~= nil then 
     KeepUI = json.keepUI 
 else 
@@ -42,7 +41,7 @@ if queueteleport then
     Players.LocalPlayer.OnTeleport:Connect(function(State)
         if KeepUI and (not TeleportCheck) then
             TeleportCheck = true
-            queueteleport("https://raw.githubusercontent.com/PINGZZMX/ww/refs/heads/main/ww'))()")
+            queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/PUSCRIPTS/PINGUIN/refs/heads/main/RivalsV1'))()")
         end
     end)
 
