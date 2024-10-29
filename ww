@@ -1,1 +1,500 @@
-print ("V2")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+
+local Vector2new, CFramenew, Color3fromRGB, Drawingnew = Vector2.new, CFrame.new, Color3.fromRGB, Drawing.new
+
+getgenv().PinguinHub = getgenv().PinguinHub or {}
+getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
+    Settings = {
+        Enabled = true,
+        Pinguin = true,
+        BoxSettings = {
+            Enabled = false,  -- Start with boxes off
+            Type = 1,
+            Color = Color3fromRGB(255, 255, 255),
+            Transparency = 0,  -- Fully transparent initially (invisible)
+            Thickness = 1,
+            Filled = false,
+            TeamCheck = true -- Added team check for ESP
+        }
+    },
+    WrappedPlayers = {},
+    PinguinmateStatus = {}
+}
+
+json.keepUI = true
+
+local Environment = getgenv().PinguinHub.WallHack
+
+-- Teleport handling and UI persistence
+if json.keepUI ~= nil then 
+    KeepUI = json.keepUI 
+else 
+    KeepUI = true 
+end
+
+if queueteleport then
+    local TeleportCheck = false
+
+    Players.LocalPlayer.OnTeleport:Connect(function(State)
+        if KeepUI and (not TeleportCheck) then
+            TeleportCheck = true
+            queueteleport("https://raw.githubusercontent.com/PINGZZMX/ww/refs/heads/main/ww'))()")
+        end
+    end)
+
+    updatesaves()  -- Call to save the current state or data
+else
+    notify('Incompatible Exploit', 'Your exploit does not support this command (missing queue_on_teleport)')
+end
+
+local function IsPlayerPinguinmate(Player)
+    if Environment.PinguinmateStatus[Player.UserId] ~= nil then
+        return Environment.PinguinmateStatus[Player.UserId]
+    end
+
+    if Environment.Settings.Pinguin then
+        local character = workspace:FindFirstChild(Player.Name)
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local isPinguinmate = character.HumanoidRootPart:FindFirstChild("PinguinmateLabel") ~= nil
+            Environment.PinguinmateStatus[Player.UserId] = isPinguinmate
+            return isPinguinmate
+        end
+    end
+
+    Environment.PinguinmateStatus[Player.UserId] = false
+    return false
+end
+
+local function IsPlayerTeammate(Player)
+    if Environment.PinguinmateStatus[Player.UserId] ~= nil then
+        return Environment.PinguinmateStatus[Player.UserId]
+    end
+
+    if Environment.Settings.BoxSettings.TeamCheck then  -- Check if team check is enabled
+        local character = workspace:FindFirstChild(Player.Name)
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local isTeammate = character.HumanoidRootPart:FindFirstChild("TeammateLabel") ~= nil
+            Environment.PinguinmateStatus[Player.UserId] = isTeammate
+            return isTeammate
+        end
+    end
+
+    Environment.PinguinmateStatus[Player.UserId] = false
+    return false
+end
+
+local function CreateBox(Player)
+    local Box = {}
+    Box.Square = Drawingnew("Square")
+    Box.Square.Color = Environment.Settings.BoxSettings.Color
+    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency  -- Start fully transparent (invisible)
+    Box.Square.Thickness = Environment.Settings.BoxSettings.Thickness
+    Box.Square.Filled = Environment.Settings.BoxSettings.Filled
+
+    Box.Update = function()
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            if IsPlayerTeammate(Player) then  -- Use team check for ESP
+                Box.Square.Visible = false
+                return
+            end
+
+            local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                local height = humanoid.RootPart.Size.Y * 2200
+                local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
+
+                if OnScreen then
+                    Box.Square.Size = Vector2new(2000 / Pos.Z, height / Pos.Z)
+                    Box.Square.Position = Vector2new(Pos.X - Box.Square.Size.X / 2, Pos.Y - Box.Square.Size.Y / 2.475)
+                    Box.Square.Visible = true
+                else
+                    Box.Square.Visible = false
+                end
+            else
+                Box.Square.Visible = false
+            end
+        else
+            Box.Square.Visible = false
+        end
+    end
+
+    Box.Remove = function()
+        Box.Square:Remove()
+    end
+
+    return Box
+end
+
+local function WrapPlayer(Player)
+    if not IsPlayerTeammate(Player) then  -- Only wrap if not a teammate
+        local PlayerBox = CreateBox(Player)
+        Environment.WrappedPlayers[Player.UserId] = PlayerBox
+
+        PlayerBox.UpdateConnection = RunService.RenderStepped:Connect(function()
+            PlayerBox.Update()
+        end)
+
+        Player.AncestryChanged:Connect(function(_, Parent)
+            if not Parent then
+                PlayerBox.Remove()
+                Environment.WrappedPlayers[Player.UserId] = nil
+                Environment.PinguinmateStatus[Player.UserId] = nil
+                PlayerBox.UpdateConnection:Disconnect()
+                PlayerBox = nil
+            end
+        end)
+    end
+end
+
+local function RefreshBoxes()
+    while true do
+        for _, Player in pairs(Players:GetPlayers()) do
+            if Player ~= LocalPlayer and not Environment.WrappedPlayers[Player.UserId] then
+                WrapPlayer(Player)
+            end
+        end
+        wait(0.1)
+    end
+end
+
+-- Create the GUI
+local function CreateGui()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Parent = game.CoreGui
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 350, 0, 450)
+    MainFrame.Position = UDim2.new(0.5, -75, 0.5, -150)
+    MainFrame.BackgroundColor3 = Color3fromRGB(22, 22, 22)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.BackgroundTransparency = 0
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.Parent = ScreenGui
+
+    -- Prediction TextBox
+    local PredictionBox = Instance.new("TextBox")
+    PredictionBox.Size = UDim2.new(0, 100, 0, 30)
+    PredictionBox.Position = UDim2.new(0, 150, 0.125, 0)
+    PredictionBox.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
+    PredictionBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PredictionBox.PlaceholderText = "Prediction (0-10)"
+    PredictionBox.ClearTextOnFocus = false
+    PredictionBox.Text = "0"
+    PredictionBox.Parent = MainFrame
+
+    local UICorner1 = Instance.new("UICorner")
+    UICorner1.CornerRadius = UDim.new(0.3, 0)
+    UICorner1.Parent = PredictionBox
+
+    PredictionBox.FocusLost:Connect(function()
+        local text = PredictionBox.Text
+        text = text:gsub(",", ".")
+        if not text:match("^[0-9]*%.?[0-9]*$") then
+            PredictionBox.Text = text:sub(1, -2)
+        end
+    end)
+
+    local PredictionLabel = Instance.new("TextLabel")
+    PredictionLabel.Size = UDim2.new(0, 80, 0, 30)
+    PredictionLabel.Position = UDim2.new(1.175, -150, 0.175, -25)
+    PredictionLabel.Text = "Prediction"
+    PredictionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PredictionLabel.BackgroundTransparency = 1
+    PredictionLabel.TextSize = 20
+    PredictionLabel.Font = Enum.Font.SourceSans
+    PredictionLabel.Parent = MainFrame
+
+    -- Smoothness TextBox
+    local SmoothnessBox = Instance.new("TextBox")
+    SmoothnessBox.Size = UDim2.new(0, 100, 0, 30)
+    SmoothnessBox.Position = UDim2.new(0, 150, 0.225, 0)
+    SmoothnessBox.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
+    SmoothnessBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SmoothnessBox.PlaceholderText = "Smoothness (0-10)"
+    SmoothnessBox.ClearTextOnFocus = false
+    SmoothnessBox.Text = "3"
+    SmoothnessBox.Parent = MainFrame
+
+    local UICorner2 = Instance.new("UICorner")
+    UICorner2.CornerRadius = UDim.new(0.3, 0)
+    UICorner2.Parent = SmoothnessBox
+
+    SmoothnessBox.FocusLost:Connect(function()
+        local text = SmoothnessBox.Text
+        text = text:gsub(",", ".")
+        if not text:match("^[0-9]*%.?[0-9]*$") then
+            SmoothnessBox.Text = text:sub(1, -2)
+        end
+    end)
+
+    local SmoothnessLabel = Instance.new("TextLabel")
+    SmoothnessLabel.Size = UDim2.new(0, 80, 0, 30)
+    SmoothnessLabel.Position = UDim2.new(1.175, -150, 0.275, -25)
+    SmoothnessLabel.Text = "Smoothness"
+    SmoothnessLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SmoothnessLabel.BackgroundTransparency = 1
+    SmoothnessLabel.TextSize = 20
+    SmoothnessLabel.Font = Enum.Font.SourceSans
+    SmoothnessLabel.Parent = MainFrame
+
+    local UICornerMain = Instance.new("UICorner")
+    UICornerMain.CornerRadius = UDim.new(0.1, 0)
+    UICornerMain.Parent = MainFrame
+
+    -- Button for ESP Boxes
+    local BoxesButton = Instance.new("TextButton")
+    BoxesButton.Size = UDim2.new(0, 30, 0, 30)
+    BoxesButton.Position = UDim2.new(0.5, -150, 0.275, -25)
+    BoxesButton.BackgroundColor3 = Color3fromRGB(33, 33, 33)
+    BoxesButton.Text = "✔"
+    BoxesButton.TextColor3 = Color3fromRGB(255, 255, 255)
+    BoxesButton.Parent = MainFrame
+
+    local UICornerBoxes = Instance.new("UICorner")
+    UICornerBoxes.CornerRadius = UDim.new(0.3, 0)
+    UICornerBoxes.Parent = BoxesButton
+
+    BoxesButton.MouseButton1Click:Connect(function()
+        Environment.Settings.BoxSettings.Enabled = not Environment.Settings.BoxSettings.Enabled
+        if Environment.Settings.BoxSettings.Enabled then
+            Environment.Settings.BoxSettings.Transparency = 0.5
+            BoxesButton.BackgroundColor3 = Color3fromRGB(0, 255, 0)
+        else
+            Environment.Settings.BoxSettings.Transparency = 0
+            BoxesButton.BackgroundColor3 = Color3fromRGB(33, 33, 33)
+        end
+        for _, PlayerBox in pairs(Environment.WrappedPlayers) do
+            PlayerBox.Square.Transparency = Environment.Settings.BoxSettings.Transparency
+        end
+    end)
+
+    local ESPBoxesLabel = Instance.new("TextLabel")
+    ESPBoxesLabel.Size = UDim2.new(0, 80, 0, 30)
+    ESPBoxesLabel.Position = UDim2.new(0.6, -150, 0.275, -25)
+    ESPBoxesLabel.Text = "Boxes"
+    ESPBoxesLabel.TextColor3 = Color3fromRGB(255, 255, 255)
+    ESPBoxesLabel.BackgroundTransparency = 1
+    ESPBoxesLabel.TextSize = 20
+    ESPBoxesLabel.Font = Enum.Font.SourceSans
+    ESPBoxesLabel.Parent = MainFrame
+
+    -- Aimbot Button
+    local AimbotButton = Instance.new("TextButton")
+    AimbotButton.Size = UDim2.new(0, 30, 0, 30)
+    AimbotButton.Position = UDim2.new(0.5, -150, 0.175, -25)
+    AimbotButton.BackgroundColor3 = Color3fromRGB(33, 33, 33)
+    AimbotButton.Text = "✔"
+    AimbotButton.TextColor3 = Color3fromRGB(255, 255, 255)
+    AimbotButton.Parent = MainFrame
+
+    local UICornerAimbot = Instance.new("UICorner")
+    UICornerAimbot.CornerRadius = UDim.new(0.3, 0)
+    UICornerAimbot.Parent = AimbotButton
+
+    local AimbotLabel = Instance.new("TextLabel")
+    AimbotLabel.Size = UDim2.new(0, 80, 0, 30)
+    AimbotLabel.Position = UDim2.new(0.6, -150, 0.175, -25)
+    AimbotLabel.Text = "Aimbot"
+    AimbotLabel.TextColor3 = Color3fromRGB(255, 255, 255)
+    AimbotLabel.BackgroundTransparency = 1
+    AimbotLabel.TextSize = 20
+    AimbotLabel.Font = Enum.Font.SourceSans
+    AimbotLabel.Parent = MainFrame
+
+    -- PinguinRivalsV1 Label
+    local PinguinLabel = Instance.new("TextLabel")
+    PinguinLabel.Size = UDim2.new(0, 150, 0, 30)
+    PinguinLabel.Position = UDim2.new(0, 100, 0, 0)
+    PinguinLabel.Text = "PinguinRivalsV1"
+    PinguinLabel.TextColor3 = Color3fromRGB(255, 255, 255)
+    PinguinLabel.BackgroundTransparency = 1
+    PinguinLabel.TextSize = 25
+    PinguinLabel.Font = Enum.Font.SourceSans
+    PinguinLabel.Parent = MainFrame
+
+    -- Aimbot functionality
+    local AimbotEnabled = false
+    local AimbotEnvironment = getgenv().ExunysDeveloperAimbot or {
+        Settings = {
+            Enabled = true,
+            LockPart = "Head", -- Body part to lock on
+            TriggerKey = Enum.UserInputType.MouseButton2, -- Right mouse button
+            ThirdPerson = true, -- Set to true for third-person aiming
+            ThirdPersonSensitivity = 0.5, -- Sensitivity multiplier for third-person aiming
+            TeamCheck = true  -- Team check enabled
+        },
+        FOVSettings = {
+            Radius = 150,
+            Color = Color3fromRGB(255, 255, 255), 
+            LockedColor = Color3fromRGB(255, 80, 80), 
+            Thickness = 1,
+            Transparency = 0.5,
+            Visible = true
+        },
+        Locked = nil,
+        FOVCircle = Drawingnew("Circle"),
+        TeammateStatus = {} 
+    }
+
+    AimbotEnvironment.FOVCircle.Visible = AimbotEnvironment.FOVSettings.Visible
+    AimbotEnvironment.FOVCircle.Radius = AimbotEnvironment.FOVSettings.Radius
+    AimbotEnvironment.FOVCircle.Color = AimbotEnvironment.FOVSettings.Color
+    AimbotEnvironment.FOVCircle.Filled = false 
+    AimbotEnvironment.FOVCircle.Thickness = AimbotEnvironment.FOVSettings.Thickness 
+    AimbotEnvironment.FOVCircle.Transparency = AimbotEnvironment.FOVSettings.Transparency 
+
+    AimbotButton.MouseButton1Click:Connect(function()
+        AimbotEnabled = not AimbotEnabled
+        if AimbotEnabled then
+            AimbotButton.BackgroundColor3 = Color3fromRGB(0, 255, 0)
+            AimbotEnvironment.FOVCircle.Visible = true 
+        else
+            AimbotButton.BackgroundColor3 = Color3fromRGB(33, 33, 33)
+            AimbotEnvironment.FOVCircle.Visible = false 
+        end
+    end)
+
+    local function IsPlayerTeammate(Player)
+        if AimbotEnvironment.TeammateStatus[Player.UserId] ~= nil then
+            return AimbotEnvironment.TeammateStatus[Player.UserId]
+        end
+
+        if AimbotEnvironment.Settings.TeamCheck then
+            local character = workspace:FindFirstChild(Player.Name)
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                local isTeammate = character.HumanoidRootPart:FindFirstChild("TeammateLabel") ~= nil
+                AimbotEnvironment.TeammateStatus[Player.UserId] = isTeammate 
+                return isTeammate
+            end
+        end
+
+        AimbotEnvironment.TeammateStatus[Player.UserId] = false 
+        return false
+    end
+
+    local function IsInFOV(player)
+        local character = player.Character
+        if not character or not character:FindFirstChild(AimbotEnvironment.Settings.LockPart) then return false end
+        local part = character[AimbotEnvironment.Settings.LockPart]
+        local screenPoint = Camera:WorldToViewportPoint(part.Position)
+        local distance = (Vector2new(screenPoint.X, screenPoint.Y) - UserInputService:GetMouseLocation()).Magnitude
+        return distance <= AimbotEnvironment.FOVSettings.Radius
+    end
+
+    local function GetClosestPlayer()
+        local closest = nil
+        local closestDistance = math.huge
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and IsInFOV(player) and not IsPlayerTeammate(player) then
+                local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid and humanoid.Health > 0 then
+                    local characterPosition = player.Character[AimbotEnvironment.Settings.LockPart].Position
+                    local screenPoint = Camera:WorldToViewportPoint(characterPosition)
+                    local distance = (Vector2new(screenPoint.X, screenPoint.Y) - UserInputService:GetMouseLocation()).Magnitude
+
+                    if distance < closestDistance then
+                        closest = player
+                        closestDistance = distance
+                    end
+                end
+            end
+        end
+        return closest
+    end
+
+    local function LockTarget(player)
+        AimbotEnvironment.Locked = player
+    end
+
+    local function CancelLock()
+        AimbotEnvironment.Locked = nil
+    end
+
+    RunService.RenderStepped:Connect(function()
+        local predictionValue = tonumber(PredictionBox.Text) or 0
+        predictionValue = math.clamp(predictionValue, 0, 10) 
+
+        local smoothnessValue = tonumber(SmoothnessBox.Text) or 0
+        smoothnessValue = math.clamp(smoothnessValue, 0, 10) 
+
+        AimbotEnvironment.FOVCircle.Position = UserInputService:GetMouseLocation()
+        AimbotEnvironment.FOVCircle.Visible = AimbotEnvironment.FOVSettings.Visible
+
+        if AimbotEnabled then
+            if AimbotEnvironment.Locked then
+                local targetPart = AimbotEnvironment.Locked.Character:FindFirstChild(AimbotEnvironment.Settings.LockPart)
+                if targetPart then
+                    local targetPosition = targetPart.Position + (targetPart.AssemblyLinearVelocity * predictionValue) 
+                    if AimbotEnvironment.Settings.ThirdPerson then
+                        local currentMousePos = UserInputService:GetMouseLocation()
+                        local targetScreenPos = Camera:WorldToViewportPoint(targetPosition)
+                        local deltaX = (targetScreenPos.X - currentMousePos.X) * (smoothnessValue / 10) 
+                        local deltaY = (targetScreenPos.Y - currentMousePos.Y) * (smoothnessValue / 10) 
+                        mousemoverel(deltaX, deltaY)
+                    else
+                        Camera.CFrame = CFramenew(Camera.CFrame.Position, targetPosition)
+                    end
+
+                    AimbotEnvironment.FOVCircle.Color = AimbotEnvironment.FOVSettings.LockedColor
+                end
+            else
+                AimbotEnvironment.FOVCircle.Color = AimbotEnvironment.FOVSettings.Color
+            end
+        else
+            AimbotEnvironment.FOVCircle.Visible = false 
+        end
+    end)
+
+    UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == AimbotEnvironment.Settings.TriggerKey then
+            if AimbotEnvironment.Settings.Enabled then
+                local closestPlayer = GetClosestPlayer()
+                if closestPlayer then
+                    LockTarget(closestPlayer)
+                end
+            end
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == AimbotEnvironment.Settings.TriggerKey then
+            CancelLock()
+        end
+    end)
+
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+
+    MainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = Vector2.new(input.Position.X, input.Position.Y)
+            startPos = MainFrame.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = Vector2.new(input.Position.X - dragStart.X, input.Position.Y - dragStart.Y)
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    function AimbotEnvironment.Exit()
+        AimbotEnvironment.FOVCircle:Remove() 
+    end
+end
+
+CreateGui()  -- Create the GUI
+RefreshBoxes()  -- Refresh the boxes if enabled
