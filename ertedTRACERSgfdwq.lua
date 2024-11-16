@@ -1,3 +1,16 @@
+-- Tracers Script (Tracers.lua)
+
+local Drawing = Drawing or require(game:GetService("Drawing")) -- Ensure Drawing is available
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- Environment
+getgenv().Pinguin = getgenv().Pinguin or {}
+getgenv().Pinguin.TracerModule = getgenv().Pinguin.TracerModule or { Settings = { Enabled = true, Transparency = 0.5, Thickness = 1, Color = Color3.new(1, 1, 1) }, WrappedPlayers = {} }
+local Environment = getgenv().Pinguin.TracerModule
+
 -- Function to check if the player is on screen and create tracers
 local function Wrap(Player)
     local PlayerTable = Environment.WrappedPlayers[Player.Name]
@@ -67,3 +80,6 @@ local function toggleTracersESP(state)
         end
     end
 end
+
+-- Return the toggle function for use in the main script
+return toggleTracersESP
