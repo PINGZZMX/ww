@@ -1,5 +1,32 @@
+-- Visuals Script (WallHack/ESP) (Visuals.lua)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Vector2new, Drawingnew, Color3fromRGB = Vector2.new, Drawing.new, Color3.fromRGB
+
+getgenv().PinguinHub = getgenv().PinguinHub or {}
+getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
+    Settings = {
+        Enabled = true,
+        TeamCheck = true,
+        BoxSettings = {
+            Enabled = true,
+            Type = 1,
+            Color = Color3fromRGB(255, 255, 255),
+            Transparency = 0.5,
+            Thickness = 1,
+            Filled = false
+        }
+    },
+    WrappedPlayers = {},
+    TeammateStatus = {}
+}
+
 local Environment = getgenv().PinguinHub.WallHack
 
+-- Function to check if the player is a teammate
 local function IsPlayerTeammate(Player)
     if Environment.TeammateStatus[Player.UserId] ~= nil then
         return Environment.TeammateStatus[Player.UserId]
@@ -18,6 +45,7 @@ local function IsPlayerTeammate(Player)
     return false
 end
 
+-- Function to create ESP box for a player
 local function CreateBox(Player)
     local Box = {}
     Box.Square = Drawingnew("Square")
@@ -60,6 +88,7 @@ local function CreateBox(Player)
     return Box
 end
 
+-- Function to wrap a player with an ESP box
 local function WrapPlayer(Player)
     local PlayerBox = CreateBox(Player)
     Environment.WrappedPlayers[Player.UserId] = PlayerBox
@@ -79,6 +108,7 @@ local function WrapPlayer(Player)
     end)
 end
 
+-- Function to refresh all ESP boxes
 local function RefreshBoxes()
     while Environment.Settings.BoxSettings.Enabled do
         for _, Player in pairs(Players:GetPlayers()) do
@@ -90,6 +120,7 @@ local function RefreshBoxes()
     end
 end
 
+-- Function to toggle ESP visibility
 local function toggleESP(state)
     Environment.Settings.BoxSettings.Enabled = state
     print("Box ESP:", state and "ON" or "OFF")
@@ -104,3 +135,6 @@ local function toggleESP(state)
         Environment.WrappedPlayers = {}
     end
 end
+
+-- Return the toggle function for use in the main script
+return toggleESP
