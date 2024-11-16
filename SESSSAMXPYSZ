@@ -1,3 +1,34 @@
+-- External Aimbot Script (Aim.lua)
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Vector2new, CFramenew, Color3fromRGB, Drawingnew = Vector2.new, CFrame.new, Color3.fromRGB, Drawing.new
+
+local Environment = getgenv().PinguinDeveloperAimbot or {
+    Settings = {
+        Enabled = false,
+        LockPart = "Head",
+        TriggerKey = Enum.UserInputType.MouseButton2,
+        ThirdPerson = true,
+        ThirdPersonSensitivity = 0.5,
+        TeamCheck = false,
+        WallCheck = false,
+        Prediction = 0
+    },
+    FOVSettings = {
+        Radius = 150,
+        Color = Color3fromRGB(255, 255, 255),
+        LockedColor = Color3fromRGB(255, 80, 80),
+        Thickness = 1,
+        Transparency = 0.5,
+        Visible = false
+    },
+    Locked = nil,
+    FOVCircle = Drawingnew("Circle"),
+    TeammateStatus = {}
+}
+
 -- Initialize FOV Circle
 Environment.FOVCircle.Visible = Environment.FOVSettings.Visible
 Environment.FOVCircle.Radius = Environment.FOVSettings.Radius
@@ -8,7 +39,7 @@ Environment.FOVCircle.Transparency = Environment.FOVSettings.Transparency
 
 -- Function for checking visibility through walls
 local function IsVisible(target)
-    if not Environment.Settings.WallCheck then return true end  -- If wall check is off, always return true
+    if not Environment.Settings.WallCheck then return true end
     local origin = Camera.CFrame.Position
     local rayDirection = (target.Position - origin).unit * (target.Position - origin).magnitude
     local raycastParams = RaycastParams.new()
@@ -53,11 +84,11 @@ local function GetClosestPlayer()
     local closest, closestDistance = nil, math.huge
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= Players.LocalPlayer and IsInFOV(player) and 
-           (not Environment.Settings.TeamCheck or not IsPlayerTeammate(player)) then  -- Respect team check
+           (not Environment.Settings.TeamCheck or not IsPlayerTeammate(player)) then
             local character = player.Character
             if character then
                 local targetPart = character:FindFirstChild(Environment.Settings.LockPart)
-                if targetPart and IsVisible(targetPart) then  -- Check visibility based on wall check
+                if targetPart and IsVisible(targetPart) then
                     local screenPoint = Camera:WorldToViewportPoint(targetPart.Position)
                     local distance = (Vector2new(screenPoint.X, screenPoint.Y) - UserInputService:GetMouseLocation()).Magnitude
                     if distance < closestDistance then
@@ -87,11 +118,9 @@ RunService.RenderStepped:Connect(function()
         local targetPart = Environment.Locked.Character:FindFirstChild(Environment.Settings.LockPart)
         if targetPart then
             local targetPosition = targetPart.Position
-            
-            -- Implementing prediction based on player movement
             local playerVelocity = Environment.Locked.Character:FindFirstChild("HumanoidRootPart").Velocity
             targetPosition = targetPosition + playerVelocity * Environment.Settings.Prediction
-            
+
             if Environment.Settings.ThirdPerson then
                 local currentMousePos = UserInputService:GetMouseLocation()
                 local targetScreenPos = Camera:WorldToViewportPoint(targetPosition)
