@@ -1,5 +1,3 @@
--- Radar Logic Script (hosted externally)
-
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local Camera = game:GetService("Workspace").CurrentCamera
@@ -122,18 +120,20 @@ local function LoadRadar()
     if not RadarBackground then
         RadarBackground = NewCircle(0.9, RadarInfo.RadarBack, RadarInfo.Radius, true, 1)
         RadarBackground.Visible = true
-        RadarBackground.Position = RadarInfo.Position
     end
 
     if not RadarBorder then
         RadarBorder = NewCircle(0.75, RadarInfo.RadarBorder, RadarInfo.Radius, false, 3)
         RadarBorder.Visible = true
-        RadarBorder.Position = RadarInfo.Position
     end
 
     if not LocalPlayerDot then
         LocalPlayerDot = NewLocalDot()
     end
+
+    RadarBackground.Position = RadarInfo.Position
+    RadarBorder.Position = RadarInfo.Position
+    LocalPlayerDot.Position = RadarInfo.Position
 
     -- Loop through all players to display their radar dots
     for _, v in pairs(Players:GetChildren()) do
