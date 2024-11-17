@@ -25,7 +25,7 @@ local RadarInfo = {
     Team_Check = true
 }
 
--- Initialize drawing elements
+-- Initialize drawing elements (only once)
 local RadarBackground, RadarBorder
 local LocalPlayerDot
 local PlayerDots = {}
@@ -162,7 +162,7 @@ local function UnloadRadar()
     end
 end
 
--- Expose the LoadRadar and UnloadRadar functions to the main script
+-- Return the functions and objects needed by the main script
 return {
     LoadRadar = LoadRadar,
     UnloadRadar = UnloadRadar,
