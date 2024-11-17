@@ -25,6 +25,7 @@ local RadarInfo = {
     Team_Check = true
 }
 
+-- Initialize drawing elements
 local RadarBackground, RadarBorder
 local LocalPlayerDot
 local PlayerDots = {}
@@ -117,15 +118,22 @@ local function NewLocalDot()
 end
 
 local function LoadRadar()
-    RadarBackground = NewCircle(0.9, RadarInfo.RadarBack, RadarInfo.Radius, true, 1)
-    RadarBackground.Visible = true
-    RadarBackground.Position = RadarInfo.Position
+    -- Initialize elements if not already done
+    if not RadarBackground then
+        RadarBackground = NewCircle(0.9, RadarInfo.RadarBack, RadarInfo.Radius, true, 1)
+        RadarBackground.Visible = true
+        RadarBackground.Position = RadarInfo.Position
+    end
 
-    RadarBorder = NewCircle(0.75, RadarInfo.RadarBorder, RadarInfo.Radius, false, 3)
-    RadarBorder.Visible = true
-    RadarBorder.Position = RadarInfo.Position
+    if not RadarBorder then
+        RadarBorder = NewCircle(0.75, RadarInfo.RadarBorder, RadarInfo.Radius, false, 3)
+        RadarBorder.Visible = true
+        RadarBorder.Position = RadarInfo.Position
+    end
 
-    LocalPlayerDot = NewLocalDot()
+    if not LocalPlayerDot then
+        LocalPlayerDot = NewLocalDot()
+    end
 
     -- Loop through all players to display their radar dots
     for _, v in pairs(Players:GetChildren()) do
@@ -143,9 +151,15 @@ local function UnloadRadar()
     PlayerDots = {}
 
     -- Remove radar elements
-    RadarBackground.Visible = false
-    RadarBorder.Visible = false
-    LocalPlayerDot.Visible = false
+    if RadarBackground then
+        RadarBackground.Visible = false
+    end
+    if RadarBorder then
+        RadarBorder.Visible = false
+    end
+    if LocalPlayerDot then
+        LocalPlayerDot.Visible = false
+    end
 end
 
 -- Expose the LoadRadar and UnloadRadar functions to the main script
