@@ -7,6 +7,7 @@ return function(toggleStateCallback)
     local Box_Color = Color3.new(1.000000, 1.000000, 1.000000)
     local Box_Thickness = 1
     local Box_Transparency = 1
+    print("ww")
 
     local Team_Check = false
     local red = Color3.fromRGB(227, 52, 52)
