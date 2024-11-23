@@ -121,6 +121,7 @@ return function(toggleStateCallback)
 
     local function toggleState(state)
         active = state
+        print(1) -- Added here for debugging
         if state then
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= Players.LocalPlayer then
@@ -137,3 +138,4 @@ return function(toggleStateCallback)
 
     toggleStateCallback(toggleState)
 end
+
