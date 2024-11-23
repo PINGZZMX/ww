@@ -42,6 +42,13 @@ return function(toggleStateCallback)
         end
     end
 
+    local function cleanupAllESP()
+        for _, player in pairs(Players:GetPlayers()) do
+            cleanupESP(player)
+        end
+        print("ESP cleaned up for all players.") -- Debug print
+    end
+
     local function createESP(player)
         cleanupESP(player)
 
@@ -121,7 +128,9 @@ return function(toggleStateCallback)
 
     local function toggleState(state)
         active = state
-        print(1) -- Added here for debugging
+        print("Toggle state: " .. tostring(state)) -- Debug print
+        print(2) -- Debug print
+
         if state then
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= Players.LocalPlayer then
@@ -130,12 +139,9 @@ return function(toggleStateCallback)
             end
             Players.PlayerAdded:Connect(createESP)
         else
-            for _, player in pairs(Players:GetPlayers()) do
-                cleanupESP(player)
-            end
+            cleanupAllESP()
         end
     end
 
     toggleStateCallback(toggleState)
 end
-
