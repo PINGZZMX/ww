@@ -102,6 +102,7 @@ return function(toggleStateCallback)
     local function toggleState(state)
         active = state
         if state then
+            -- If state is true, enable 3D boxes for all players
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= Players.LocalPlayer then
                     createESP(player)
@@ -111,6 +112,7 @@ return function(toggleStateCallback)
                 createESP(newPlayer)
             end)
         else
+            -- If state is false, disable 3D boxes
             for _, connection in pairs(connections) do
                 connection:Disconnect()
             end
