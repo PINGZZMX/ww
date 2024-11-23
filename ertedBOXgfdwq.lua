@@ -1,4 +1,3 @@
--- 3D Boxes ESP Script (3DBoxes.lua)
 return function(toggleStateCallback)
     local workspace = game:GetService("Workspace")
     local camera = workspace.CurrentCamera
