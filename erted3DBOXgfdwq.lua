@@ -26,8 +26,25 @@ return function(toggleStateCallback)
 
     local active = false
     local connections = {}
+    local linesByPlayer = {}
+
+    local function cleanupESP(player)
+        if linesByPlayer[player] then
+            for _, line in pairs(linesByPlayer[player]) do
+                line.Visible = false
+                line:Remove()
+            end
+            linesByPlayer[player] = nil
+        end
+        if connections[player] then
+            connections[player]:Disconnect()
+            connections[player] = nil
+        end
+    end
 
     local function createESP(player)
+        cleanupESP(player)
+
         local lines = {
             line1 = NewLine(), line2 = NewLine(),
             line3 = NewLine(), line4 = NewLine(),
@@ -36,6 +53,8 @@ return function(toggleStateCallback)
             line9 = NewLine(), line10 = NewLine(),
             line11 = NewLine(), line12 = NewLine()
         }
+
+        linesByPlayer[player] = lines
 
         local function updateESP()
             if not active or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
@@ -108,14 +127,11 @@ return function(toggleStateCallback)
                     createESP(player)
                 end
             end
-            Players.PlayerAdded:Connect(function(newPlayer)
-                createESP(newPlayer)
-            end)
+            Players.PlayerAdded:Connect(createESP)
         else
-            for _, connection in pairs(connections) do
-                connection:Disconnect()
+            for _, player in pairs(Players:GetPlayers()) do
+                cleanupESP(player)
             end
-            connections = {}
         end
     end
 
