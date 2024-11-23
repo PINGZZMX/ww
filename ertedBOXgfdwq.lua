@@ -1,132 +1,140 @@
-return function(toggleStateCallback)
-    local workspace = game:GetService("Workspace")
-    local camera = workspace.CurrentCamera
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
+-- Visuals Script (WallHack/ESP) (Visuals.lua)
 
-    local Box_Color = Color3.new(1.000000, 1.000000, 1.000000)
-    local Box_Thickness = 1
-    local Box_Transparency = 1
-    print("ww")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Vector2new, Drawingnew, Color3fromRGB = Vector2.new, Drawing.new, Color3.fromRGB
 
-    local Team_Check = false
-    local red = Color3.fromRGB(227, 52, 52)
-    local green = Color3.fromRGB(88, 217, 24)
-
-    local function NewLine()
-        local line = Drawing.new("Line")
-        line.Visible = false
-        line.From = Vector2.new(0, 0)
-        line.To = Vector2.new(1, 1)
-        line.Color = Box_Color
-        line.Thickness = Box_Thickness
-        line.Transparency = Box_Transparency
-        return line
-    end
-
-    local active = false
-    local connections = {}
-    local currentESP = {}  -- To store current active ESPs
-
-    local function clearESP()
-        for _, line in pairs(currentESP) do
-            line.Visible = false  -- Hide the lines
-        end
-        currentESP = {}  -- Clear the stored ESPs
-    end
-
-    local function createESP(player)
-        local lines = {
-            line1 = NewLine(), line2 = NewLine(),
-            line3 = NewLine(), line4 = NewLine(),
-            line5 = NewLine(), line6 = NewLine(),
-            line7 = NewLine(), line8 = NewLine(),
-            line9 = NewLine(), line10 = NewLine(),
-            line11 = NewLine(), line12 = NewLine()
+getgenv().PinguinHub = getgenv().PinguinHub or {}
+getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
+    Settings = {
+        Enabled = true,
+        TeamCheck = true,
+        BoxSettings = {
+            Enabled = true,
+            Type = 1,
+            Color = Color3fromRGB(255, 255, 255),
+            Transparency = 0.5,
+            Thickness = 1,
+            Filled = false
         }
+    },
+    WrappedPlayers = {},
+    TeammateStatus = {}
+}
 
-        currentESP = lines  -- Save the lines to currentESP
+local Environment = getgenv().PinguinHub.WallHack
 
-        local function updateESP()
-            if not active or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-                clearESP()  -- If no character or root part, clear ESP
+-- Function to check if the player is a teammate
+local function IsPlayerTeammate(Player)
+    if Environment.TeammateStatus[Player.UserId] ~= nil then
+        return Environment.TeammateStatus[Player.UserId]
+    end
+
+    if Environment.Settings.TeamCheck then
+        local character = workspace:FindFirstChild(Player.Name)
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local isTeammate = character.HumanoidRootPart:FindFirstChild("TeammateLabel") ~= nil
+            Environment.TeammateStatus[Player.UserId] = isTeammate
+            return isTeammate
+        end
+    end
+
+    Environment.TeammateStatus[Player.UserId] = false
+    return false
+end
+
+-- Function to create ESP box for a player
+local function CreateBox(Player)
+    local Box = {}
+    Box.Square = Drawingnew("Square")
+    Box.Square.Color = Environment.Settings.BoxSettings.Color
+    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency
+    Box.Square.Thickness = Environment.Settings.BoxSettings.Thickness
+    Box.Square.Filled = Environment.Settings.BoxSettings.Filled
+
+    Box.Update = function()
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            if IsPlayerTeammate(Player) then
+                Box.Square.Visible = false
                 return
             end
 
-            local pos, vis = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-            if vis then
-                local Scale = player.Character.Head.Size.Y / 2
-                local Size = Vector3.new(2, 3, 1.5) * (Scale * 2)
+            local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                local height = humanoid.RootPart.Size.Y * 2200
+                local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
-                local Top1 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, Size.Y, -Size.Z)).p)
-                local Top2 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, Size.Y, Size.Z)).p)
-                local Top3 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, Size.Y, Size.Z)).p)
-                local Top4 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, Size.Y, -Size.Z)).p)
-
-                local Bottom1 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, -Size.Y, -Size.Z)).p)
-                local Bottom2 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, -Size.Y, Size.Z)).p)
-                local Bottom3 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, -Size.Y, Size.Z)).p)
-                local Bottom4 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, -Size.Y, -Size.Z)).p)
-
-                lines.line1.From = Vector2.new(Top1.X, Top1.Y)
-                lines.line1.To = Vector2.new(Top2.X, Top2.Y)
-                lines.line2.From = Vector2.new(Top2.X, Top2.Y)
-                lines.line2.To = Vector2.new(Top3.X, Top3.Y)
-                lines.line3.From = Vector2.new(Top3.X, Top3.Y)
-                lines.line3.To = Vector2.new(Top4.X, Top4.Y)
-                lines.line4.From = Vector2.new(Top4.X, Top4.Y)
-                lines.line4.To = Vector2.new(Top1.X, Top1.Y)
-
-                lines.line5.From = Vector2.new(Bottom1.X, Bottom1.Y)
-                lines.line5.To = Vector2.new(Bottom2.X, Bottom2.Y)
-                lines.line6.From = Vector2.new(Bottom2.X, Bottom2.Y)
-                lines.line6.To = Vector2.new(Bottom3.X, Bottom3.Y)
-                lines.line7.From = Vector2.new(Bottom3.X, Bottom3.Y)
-                lines.line7.To = Vector2.new(Bottom4.X, Bottom4.Y)
-                lines.line8.From = Vector2.new(Bottom4.X, Bottom4.Y)
-                lines.line8.To = Vector2.new(Bottom1.X, Bottom1.Y)
-
-                lines.line9.From = Vector2.new(Bottom1.X, Bottom1.Y)
-                lines.line9.To = Vector2.new(Top1.X, Top1.Y)
-                lines.line10.From = Vector2.new(Bottom2.X, Bottom2.Y)
-                lines.line10.To = Vector2.new(Top2.X, Top2.Y)
-                lines.line11.From = Vector2.new(Bottom3.X, Bottom3.Y)
-                lines.line11.To = Vector2.new(Top3.X, Top3.Y)
-                lines.line12.From = Vector2.new(Bottom4.X, Bottom4.Y)
-                lines.line12.To = Vector2.new(Top4.X, Top4.Y)
-
-                for _, line in pairs(lines) do
-                    line.Visible = true
+                if OnScreen then
+                    Box.Square.Size = Vector2new(2000 / Pos.Z, height / Pos.Z)
+                    Box.Square.Position = Vector2new(Pos.X - Box.Square.Size.X / 2, Pos.Y - Box.Square.Size.Y / 2.475)
+                    Box.Square.Visible = true
+                else
+                    Box.Square.Visible = false
                 end
             else
-                clearESP()  -- Clear if not visible
+                Box.Square.Visible = false
             end
-        end
-
-        connections[player] = game:GetService("RunService").RenderStepped:Connect(updateESP)
-    end
-
-    local function toggleState(state)
-        active = state
-        if state then
-            -- Only create ESP for each player if it's turned on
-            clearESP()  -- Clear existing ESP before enabling new ones
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= Players.LocalPlayer then
-                    createESP(player)
-                end
-            end
-            Players.PlayerAdded:Connect(function(newPlayer)
-                createESP(newPlayer)
-            end)
         else
-            clearESP()  -- Clear the ESP when turned off
-            for _, connection in pairs(connections) do
-                connection:Disconnect()
-            end
-            connections = {}
+            Box.Square.Visible = false
         end
     end
 
-    toggleStateCallback(toggleState)
+    Box.Remove = function()
+        Box.Square:Remove()
+    end
+
+    return Box
 end
+
+-- Function to wrap a player with an ESP box
+local function WrapPlayer(Player)
+    local PlayerBox = CreateBox(Player)
+    Environment.WrappedPlayers[Player.UserId] = PlayerBox
+
+    PlayerBox.UpdateConnection = RunService.RenderStepped:Connect(function()
+        PlayerBox.Update()
+    end)
+
+    Player.AncestryChanged:Connect(function(_, Parent)
+        if not Parent then
+            PlayerBox.Remove()
+            Environment.WrappedPlayers[Player.UserId] = nil
+            Environment.TeammateStatus[Player.UserId] = nil
+            PlayerBox.UpdateConnection:Disconnect()
+            PlayerBox = nil
+        end
+    end)
+end
+
+-- Function to refresh all ESP boxes
+local function RefreshBoxes()
+    while Environment.Settings.BoxSettings.Enabled do
+        for _, Player in pairs(Players:GetPlayers()) do
+            if Player ~= LocalPlayer and not Environment.WrappedPlayers[Player.UserId] then
+                WrapPlayer(Player)
+            end
+        end
+        wait(0.1)
+    end
+end
+
+-- Function to toggle ESP visibility
+local function toggleESP(state)
+    Environment.Settings.BoxSettings.Enabled = state
+    print("Box ESP:", state and "ON" or "OFF")
+
+    if state then
+        RefreshBoxes()
+    else
+        -- Hide all boxes when ESP is disabled
+        for _, PlayerBox in pairs(Environment.WrappedPlayers) do
+            PlayerBox.Remove()
+        end
+        Environment.WrappedPlayers = {}
+    end
+end
+
+-- Return the toggle function for use in the main script
+return toggleESP
