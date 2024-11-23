@@ -1,88 +1,118 @@
--- Visuals Script (WallHack/ESP) (Visuals.lua)
-
+-- 3D Boxes ESP Script (3DBoxes.lua)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
-local Vector2new, Drawingnew, Color3fromRGB = Vector2.new, Drawing.new, Color3.fromRGB
+local Drawingnew = Drawing.new
+local Vector2new = Vector2.new
+local Color3fromRGB = Color3.fromRGB
 
 getgenv().PinguinHub = getgenv().PinguinHub or {}
-getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
+getgenv().PinguinHub.ESP = getgenv().PinguinHub.ESP or {
     Settings = {
         Enabled = true,
-        TeamCheck = true,
         BoxSettings = {
             Enabled = true,
-            Type = 1,
             Color = Color3fromRGB(255, 255, 255),
-            Transparency = 0.5,
+            Transparency = 1,
             Thickness = 1,
             Filled = false
         }
     },
-    WrappedPlayers = {},
-    TeammateStatus = {}
+    WrappedPlayers = {}
 }
 
-local Environment = getgenv().PinguinHub.WallHack
-
--- Function to check if the player is a teammate
-local function IsPlayerTeammate(Player)
-    if Environment.TeammateStatus[Player.UserId] ~= nil then
-        return Environment.TeammateStatus[Player.UserId]
-    end
-
-    if Environment.Settings.TeamCheck then
-        local character = workspace:FindFirstChild(Player.Name)
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            local isTeammate = character.HumanoidRootPart:FindFirstChild("TeammateLabel") ~= nil
-            Environment.TeammateStatus[Player.UserId] = isTeammate
-            return isTeammate
-        end
-    end
-
-    Environment.TeammateStatus[Player.UserId] = false
-    return false
-end
+local Environment = getgenv().PinguinHub.ESP
 
 -- Function to create ESP box for a player
 local function CreateBox(Player)
     local Box = {}
-    Box.Square = Drawingnew("Square")
-    Box.Square.Color = Environment.Settings.BoxSettings.Color
-    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency
-    Box.Square.Thickness = Environment.Settings.BoxSettings.Thickness
-    Box.Square.Filled = Environment.Settings.BoxSettings.Filled
+    Box.Lines = {
+        line1 = Drawingnew("Line"),
+        line2 = Drawingnew("Line"),
+        line3 = Drawingnew("Line"),
+        line4 = Drawingnew("Line"),
+        line5 = Drawingnew("Line"),
+        line6 = Drawingnew("Line"),
+        line7 = Drawingnew("Line"),
+        line8 = Drawingnew("Line"),
+        line9 = Drawingnew("Line"),
+        line10 = Drawingnew("Line"),
+        line11 = Drawingnew("Line"),
+        line12 = Drawingnew("Line")
+    }
+
+    for _, line in pairs(Box.Lines) do
+        line.Color = Environment.Settings.BoxSettings.Color
+        line.Transparency = Environment.Settings.BoxSettings.Transparency
+        line.Thickness = Environment.Settings.BoxSettings.Thickness
+        line.Filled = Environment.Settings.BoxSettings.Filled
+        line.Visible = false
+    end
 
     Box.Update = function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            if IsPlayerTeammate(Player) then
-                Box.Square.Visible = false
-                return
-            end
+            local pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
+            if OnScreen then
+                local Scale = Player.Character.Head.Size.Y / 2
+                local Size = Vector3.new(2, 3, 1.5) * (Scale * 2)
 
-            local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                local height = humanoid.RootPart.Size.Y * 2200
-                local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
+                local Top1 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, Size.Y, -Size.Z)).p)
+                local Top2 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, Size.Y, Size.Z)).p)
+                local Top3 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, Size.Y, Size.Z)).p)
+                local Top4 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, Size.Y, -Size.Z)).p)
 
-                if OnScreen then
-                    Box.Square.Size = Vector2new(2000 / Pos.Z, height / Pos.Z)
-                    Box.Square.Position = Vector2new(Pos.X - Box.Square.Size.X / 2, Pos.Y - Box.Square.Size.Y / 2.475)
-                    Box.Square.Visible = true
-                else
-                    Box.Square.Visible = false
+                local Bottom1 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, -Size.Y, -Size.Z)).p)
+                local Bottom2 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, -Size.Y, Size.Z)).p)
+                local Bottom3 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, -Size.Y, Size.Z)).p)
+                local Bottom4 = Camera:WorldToViewportPoint((Player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, -Size.Y, -Size.Z)).p)
+
+                Box.Lines.line1.From = Vector2new(Top1.X, Top1.Y)
+                Box.Lines.line1.To = Vector2new(Top2.X, Top2.Y)
+                Box.Lines.line2.From = Vector2new(Top2.X, Top2.Y)
+                Box.Lines.line2.To = Vector2new(Top3.X, Top3.Y)
+                Box.Lines.line3.From = Vector2new(Top3.X, Top3.Y)
+                Box.Lines.line3.To = Vector2new(Top4.X, Top4.Y)
+                Box.Lines.line4.From = Vector2new(Top4.X, Top4.Y)
+                Box.Lines.line4.To = Vector2new(Top1.X, Top1.Y)
+
+                Box.Lines.line5.From = Vector2new(Bottom1.X, Bottom1.Y)
+                Box.Lines.line5.To = Vector2new(Bottom2.X, Bottom2.Y)
+                Box.Lines.line6.From = Vector2new(Bottom2.X, Bottom2.Y)
+                Box.Lines.line6.To = Vector2new(Bottom3.X, Bottom3.Y)
+                Box.Lines.line7.From = Vector2new(Bottom3.X, Bottom3.Y)
+                Box.Lines.line7.To = Vector2new(Bottom4.X, Bottom4.Y)
+                Box.Lines.line8.From = Vector2new(Bottom4.X, Bottom4.Y)
+                Box.Lines.line8.To = Vector2new(Bottom1.X, Bottom1.Y)
+
+                Box.Lines.line9.From = Vector2new(Bottom1.X, Bottom1.Y)
+                Box.Lines.line9.To = Vector2new(Top1.X, Top1.Y)
+                Box.Lines.line10.From = Vector2new(Bottom2.X, Bottom2.Y)
+                Box.Lines.line10.To = Vector2new(Top2.X, Top2.Y)
+                Box.Lines.line11.From = Vector2new(Bottom3.X, Bottom3.Y)
+                Box.Lines.line11.To = Vector2new(Top3.X, Top3.Y)
+                Box.Lines.line12.From = Vector2new(Bottom4.X, Bottom4.Y)
+                Box.Lines.line12.To = Vector2new(Top4.X, Top4.Y)
+
+                for _, line in pairs(Box.Lines) do
+                    line.Visible = true
                 end
             else
-                Box.Square.Visible = false
+                for _, line in pairs(Box.Lines) do
+                    line.Visible = false
+                end
             end
         else
-            Box.Square.Visible = false
+            for _, line in pairs(Box.Lines) do
+                line.Visible = false
+            end
         end
     end
 
     Box.Remove = function()
-        Box.Square:Remove()
+        for _, line in pairs(Box.Lines) do
+            line:Remove()
+        end
     end
 
     return Box
@@ -101,7 +131,6 @@ local function WrapPlayer(Player)
         if not Parent then
             PlayerBox.Remove()
             Environment.WrappedPlayers[Player.UserId] = nil
-            Environment.TeammateStatus[Player.UserId] = nil
             PlayerBox.UpdateConnection:Disconnect()
             PlayerBox = nil
         end
@@ -123,7 +152,7 @@ end
 -- Function to toggle ESP visibility
 local function toggleESP(state)
     Environment.Settings.BoxSettings.Enabled = state
-    print("Box ESP:", state and "ON" or "OFF")
+    print("3D Box ESP:", state and "ON" or "OFF")
 
     if state then
         RefreshBoxes()
