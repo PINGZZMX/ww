@@ -26,6 +26,7 @@ local function toggleESP(state)
     end
 
     isESPEnabled = state
+    print("v1 - ESP state changed to:", isESPEnabled)  -- Debug print for state change
 
     if isESPEnabled then
         for _, v in pairs(Players:GetPlayers()) do
