@@ -26,6 +26,14 @@ return function(toggleStateCallback)
 
     local active = false
     local connections = {}
+    local currentESP = {}  -- To store current active ESPs
+
+    local function clearESP()
+        for _, line in pairs(currentESP) do
+            line.Visible = false  -- Hide the lines
+        end
+        currentESP = {}  -- Clear the stored ESPs
+    end
 
     local function createESP(player)
         local lines = {
@@ -37,11 +45,11 @@ return function(toggleStateCallback)
             line11 = NewLine(), line12 = NewLine()
         }
 
+        currentESP = lines  -- Save the lines to currentESP
+
         local function updateESP()
             if not active or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-                for _, line in pairs(lines) do
-                    line.Visible = false
-                end
+                clearESP()  -- If no character or root part, clear ESP
                 return
             end
 
@@ -91,9 +99,7 @@ return function(toggleStateCallback)
                     line.Visible = true
                 end
             else
-                for _, line in pairs(lines) do
-                    line.Visible = false
-                end
+                clearESP()  -- Clear if not visible
             end
         end
 
@@ -103,6 +109,8 @@ return function(toggleStateCallback)
     local function toggleState(state)
         active = state
         if state then
+            -- Only create ESP for each player if it's turned on
+            clearESP()  -- Clear existing ESP before enabling new ones
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= Players.LocalPlayer then
                     createESP(player)
@@ -112,6 +120,7 @@ return function(toggleStateCallback)
                 createESP(newPlayer)
             end)
         else
+            clearESP()  -- Clear the ESP when turned off
             for _, connection in pairs(connections) do
                 connection:Disconnect()
             end
