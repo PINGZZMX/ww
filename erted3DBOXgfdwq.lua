@@ -5,7 +5,7 @@ return function(toggleStateCallback)
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
 
-    local Box_Color = Color3.new(1, 1, 1)
+    local Box_Color = Color3.new(1.000000, 1.000000, 1.000000)
     local Box_Thickness = 1
     local Box_Transparency = 1
 
@@ -16,6 +16,8 @@ return function(toggleStateCallback)
     local function NewLine()
         local line = Drawing.new("Line")
         line.Visible = false
+        line.From = Vector2.new(0, 0)
+        line.To = Vector2.new(1, 1)
         line.Color = Box_Color
         line.Thickness = Box_Thickness
         line.Transparency = Box_Transparency
@@ -24,97 +26,101 @@ return function(toggleStateCallback)
 
     local active = false
     local connections = {}
-    local currentESP = {}
+    local currentESP = {}  -- To store current active ESPs
 
     local function clearESP()
-        for _, lines in pairs(currentESP) do
-            for _, line in pairs(lines) do
-                line.Visible = false
-                line:Remove() -- Ensure lines are removed from memory
-            end
+        for _, line in pairs(currentESP) do
+            line.Visible = false  -- Hide the lines
         end
-        currentESP = {}
+        currentESP = {}  -- Clear the stored ESPs
     end
 
-    local function createESP(targetPlayer)
+    local function createESP(player)
         local lines = {
-            NewLine(), NewLine(), NewLine(), NewLine(),
-            NewLine(), NewLine(), NewLine(), NewLine(),
-            NewLine(), NewLine(), NewLine(), NewLine()
+            line1 = NewLine(), line2 = NewLine(),
+            line3 = NewLine(), line4 = NewLine(),
+            line5 = NewLine(), line6 = NewLine(),
+            line7 = NewLine(), line8 = NewLine(),
+            line9 = NewLine(), line10 = NewLine(),
+            line11 = NewLine(), line12 = NewLine()
         }
 
-        currentESP[targetPlayer] = lines
+        currentESP = lines  -- Save the lines to currentESP
 
         local function updateESP()
-            if not active or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                for _, line in pairs(lines) do
-                    line.Visible = false
-                end
+            if not active or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+                clearESP()  -- If no character or root part, clear ESP
                 return
             end
 
-            local rootPart = targetPlayer.Character.HumanoidRootPart
-            local pos, vis = camera:WorldToViewportPoint(rootPart.Position)
+            local pos, vis = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
             if vis then
-                local Scale = targetPlayer.Character.Head.Size.Y / 2
+                local Scale = player.Character.Head.Size.Y / 2
                 local Size = Vector3.new(2, 3, 1.5) * (Scale * 2)
 
-                local corners = {
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(-Size.X, Size.Y, -Size.Z)).Position),
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(-Size.X, Size.Y, Size.Z)).Position),
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(Size.X, Size.Y, Size.Z)).Position),
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(Size.X, Size.Y, -Size.Z)).Position),
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(-Size.X, -Size.Y, -Size.Z)).Position),
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(-Size.X, -Size.Y, Size.Z)).Position),
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(Size.X, -Size.Y, Size.Z)).Position),
-                    camera:WorldToViewportPoint((rootPart.CFrame * CFrame.new(Size.X, -Size.Y, -Size.Z)).Position),
-                }
+                local Top1 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, Size.Y, -Size.Z)).p)
+                local Top2 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, Size.Y, Size.Z)).p)
+                local Top3 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, Size.Y, Size.Z)).p)
+                local Top4 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, Size.Y, -Size.Z)).p)
 
-                local pairsToDraw = {
-                    {1, 2}, {2, 3}, {3, 4}, {4, 1}, -- Top rectangle
-                    {5, 6}, {6, 7}, {7, 8}, {8, 5}, -- Bottom rectangle
-                    {1, 5}, {2, 6}, {3, 7}, {4, 8}  -- Connecting lines
-                }
+                local Bottom1 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, -Size.Y, -Size.Z)).p)
+                local Bottom2 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(-Size.X, -Size.Y, Size.Z)).p)
+                local Bottom3 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, -Size.Y, Size.Z)).p)
+                local Bottom4 = camera:WorldToViewportPoint((player.Character.HumanoidRootPart.CFrame * CFrame.new(Size.X, -Size.Y, -Size.Z)).p)
 
-                for index, pair in pairsToDraw do
-                    local from = corners[pair[1]]
-                    local to = corners[pair[2]]
-                    local line = lines[index]
-                    line.From = Vector2.new(from.X, from.Y)
-                    line.To = Vector2.new(to.X, to.Y)
+                lines.line1.From = Vector2.new(Top1.X, Top1.Y)
+                lines.line1.To = Vector2.new(Top2.X, Top2.Y)
+                lines.line2.From = Vector2.new(Top2.X, Top2.Y)
+                lines.line2.To = Vector2.new(Top3.X, Top3.Y)
+                lines.line3.From = Vector2.new(Top3.X, Top3.Y)
+                lines.line3.To = Vector2.new(Top4.X, Top4.Y)
+                lines.line4.From = Vector2.new(Top4.X, Top4.Y)
+                lines.line4.To = Vector2.new(Top1.X, Top1.Y)
+
+                lines.line5.From = Vector2.new(Bottom1.X, Bottom1.Y)
+                lines.line5.To = Vector2.new(Bottom2.X, Bottom2.Y)
+                lines.line6.From = Vector2.new(Bottom2.X, Bottom2.Y)
+                lines.line6.To = Vector2.new(Bottom3.X, Bottom3.Y)
+                lines.line7.From = Vector2.new(Bottom3.X, Bottom3.Y)
+                lines.line7.To = Vector2.new(Bottom4.X, Bottom4.Y)
+                lines.line8.From = Vector2.new(Bottom4.X, Bottom4.Y)
+                lines.line8.To = Vector2.new(Bottom1.X, Bottom1.Y)
+
+                lines.line9.From = Vector2.new(Bottom1.X, Bottom1.Y)
+                lines.line9.To = Vector2.new(Top1.X, Top1.Y)
+                lines.line10.From = Vector2.new(Bottom2.X, Bottom2.Y)
+                lines.line10.To = Vector2.new(Top2.X, Top2.Y)
+                lines.line11.From = Vector2.new(Bottom3.X, Bottom3.Y)
+                lines.line11.To = Vector2.new(Top3.X, Top3.Y)
+                lines.line12.From = Vector2.new(Bottom4.X, Bottom4.Y)
+                lines.line12.To = Vector2.new(Top4.X, Top4.Y)
+
+                for _, line in pairs(lines) do
                     line.Visible = true
                 end
             else
-                for _, line in pairs(lines) do
-                    line.Visible = false
-                end
+                clearESP()  -- Clear if not visible
             end
         end
 
-        connections[targetPlayer] = game:GetService("RunService").RenderStepped:Connect(updateESP)
+        connections[player] = game:GetService("RunService").RenderStepped:Connect(updateESP)
     end
 
     local function toggleState(state)
         active = state
         if state then
-            clearESP()
-            for _, targetPlayer in ipairs(Players:GetPlayers()) do
-                if targetPlayer ~= player then
-                    createESP(targetPlayer)
+            -- Only create ESP for each player if it's turned on
+            clearESP()  -- Clear existing ESP before enabling new ones
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= Players.LocalPlayer then
+                    createESP(player)
                 end
             end
-            connections["PlayerAdded"] = Players.PlayerAdded:Connect(createESP)
-            connections["PlayerRemoving"] = Players.PlayerRemoving:Connect(function(removedPlayer)
-                if currentESP[removedPlayer] then
-                    for _, line in pairs(currentESP[removedPlayer]) do
-                        line.Visible = false
-                        line:Remove()
-                    end
-                    currentESP[removedPlayer] = nil
-                end
+            Players.PlayerAdded:Connect(function(newPlayer)
+                createESP(newPlayer)
             end)
         else
-            clearESP()
+            clearESP()  -- Clear the ESP when turned off
             for _, connection in pairs(connections) do
                 connection:Disconnect()
             end
