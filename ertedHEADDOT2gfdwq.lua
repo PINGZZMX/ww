@@ -1,7 +1,7 @@
 -- Ensure HeadDotSettings is globally accessible
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.HeadDotSettings = getgenv().Pinguin.HeadDotSettings or {
-    Enabled = false, -- Initially set to false; button toggles it
+    Enabled = false, -- Initially set to false; toggle button updates this
     Color = Color3.fromRGB(255, 255, 255),
     Transparency = 0.5,
     Thickness = 1,
@@ -14,13 +14,11 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- Initialize playerDots table to store head dot data
+-- Data structure to store players and their associated head dots
 local playerDots = {}
 
--- Function to add a head dot for a player
-local function AddHeadDot(Player)
-    if Player == LocalPlayer then return end
-
+-- Function to create and initialize a head dot
+local function CreateHeadDot(player)
     local headDot = Drawing.new("Circle")
     headDot.Visible = getgenv().Pinguin.HeadDotSettings.Enabled
     headDot.Color = getgenv().Pinguin.HeadDotSettings.Color
@@ -29,72 +27,80 @@ local function AddHeadDot(Player)
     headDot.Filled = getgenv().Pinguin.HeadDotSettings.Filled
     headDot.NumSides = getgenv().Pinguin.HeadDotSettings.Sides
 
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if Player.Character and Player.Character:FindFirstChild("Head") then
-            local head = Player.Character.Head
-            local headPosition, onScreen = Camera:WorldToViewportPoint(head.Position)
-            headDot.Visible = onScreen and getgenv().Pinguin.HeadDotSettings.Enabled
-
-            if headDot.Visible then
-                headDot.Position = Vector2.new(headPosition.X, headPosition.Y)
-
-                local top = Camera:WorldToViewportPoint((head.CFrame * CFrame.new(0, head.Size.Y / 2, 0)).Position)
-                local bottom = Camera:WorldToViewportPoint((head.CFrame * CFrame.new(0, -head.Size.Y / 2, 0)).Position)
-                headDot.Radius = math.abs((top.Y - bottom.Y) - 3)
-            end
-        else
-            headDot.Visible = false
-        end
-    end)
-
-    playerDots[Player.UserId] = { headDot = headDot, connection = connection }
+    -- Attach the head dot to the player's data
+    playerDots[player.UserId] = {
+        player = player,
+        headDot = headDot,
+    }
 end
 
--- Function to remove a head dot for a player
-local function RemoveHeadDot(Player)
-    local data = playerDots[Player.UserId]
-    if data then
-        data.headDot:Remove()
-        data.connection:Disconnect()
-        playerDots[Player.UserId] = nil
+-- Function to update a player's head dot
+local function UpdateHeadDot(player)
+    local data = playerDots[player.UserId]
+    if not data or not data.player.Character then return end
+
+    local head = data.player.Character:FindFirstChild("Head")
+    if not head then return end
+
+    local headPosition, onScreen = Camera:WorldToViewportPoint(head.Position)
+    data.headDot.Visible = onScreen and getgenv().Pinguin.HeadDotSettings.Enabled
+    if data.headDot.Visible then
+        data.headDot.Position = Vector2.new(headPosition.X, headPosition.Y)
+        local top = Camera:WorldToViewportPoint((head.CFrame * CFrame.new(0, head.Size.Y / 2, 0)).Position)
+        local bottom = Camera:WorldToViewportPoint((head.CFrame * CFrame.new(0, -head.Size.Y / 2, 0)).Position)
+        data.headDot.Radius = math.abs((top.Y - bottom.Y) - 3)
     end
 end
 
--- Ensure playerDots is initialized properly
-local function InitializePlayerDots()
-    -- Initialize playerDots for already existing players
+-- Function to remove a head dot when a player leaves
+local function RemoveHeadDot(player)
+    if playerDots[player.UserId] then
+        playerDots[player.UserId].headDot:Remove()
+        playerDots[player.UserId] = nil
+    end
+end
+
+-- Function to toggle all head dots
+local function ToggleHeadDots(state)
+    getgenv().Pinguin.HeadDotSettings.Enabled = state
+    for _, data in pairs(playerDots) do
+        data.headDot.Visible = state
+    end
+end
+
+-- Update all head dots each frame
+RunService.RenderStepped:Connect(function()
+    for _, data in pairs(playerDots) do
+        UpdateHeadDot(data.player)
+    end
+end)
+
+-- Initialize head dots for all current players
+local function InitializeHeadDots()
     for _, player in ipairs(Players:GetPlayers()) do
-        AddHeadDot(player)
+        if player ~= LocalPlayer then
+            CreateHeadDot(player)
+        end
     end
 end
 
--- Return functions for toggling HeadDot ESP
+-- Player connections
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        CreateHeadDot(player)
+    end
+end)
+
+Players.PlayerRemoving:Connect(RemoveHeadDot)
+
+-- Public API
 return {
-    ToggleHeadDotESP = function(state)
-        getgenv().Pinguin.HeadDotSettings.Enabled = state
-
-        -- Update visibility for all active head dots
+    Initialize = InitializeHeadDots,
+    ToggleHeadDotESP = ToggleHeadDots,
+    UpdateColor = function(color)
+        getgenv().Pinguin.HeadDotSettings.Color = color
         for _, data in pairs(playerDots) do
-            if data.headDot then
-                data.headDot.Visible = state
-            end
+            data.headDot.Color = color
         end
-    end,
-
-    Initialize = function()
-        -- Initialize playerDots when the script runs
-        InitializePlayerDots()
-
-        Players.PlayerAdded:Connect(AddHeadDot)
-        Players.PlayerRemoving:Connect(RemoveHeadDot)
-
-        LocalPlayer.CharacterRemoving:Connect(function()
-            for _, data in pairs(playerDots) do
-                if data.headDot then
-                    data.headDot.Visible = false
-                end
-            end
-        end)
     end
 }
