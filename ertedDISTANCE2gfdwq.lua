@@ -1,5 +1,3 @@
--- Module for Distance functionality
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
@@ -7,7 +5,7 @@ local Camera = workspace.CurrentCamera
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.DistanceSettings = getgenv().Pinguin.DistanceSettings or {
     Enabled = false,
-    Color = Color3.fromRGB(255, 255, 255)  -- Default set to white
+    Color = Color3.fromRGB(255, 255, 255)
 }
 
 local espObjects = {}
@@ -18,7 +16,7 @@ end
 
 local function UpdateESPColor()
     for _, espData in pairs(espObjects) do
-        espData.text.Color = getgenv().Pinguin.DistanceSettings.Color  -- Update color for active ESP
+        espData.text.Color = getgenv().Pinguin.DistanceSettings.Color
     end
 end
 
@@ -64,19 +62,17 @@ end
 local function RemoveDistanceESP(player)
     local espData = espObjects[player.UserId]
     if espData then
-        espData.text:Remove()  -- Remove the drawing
+        espData.text:Remove()
         for _, connection in pairs(espData.connections) do
-            connection:Disconnect()  -- Disconnect all connections
+            connection:Disconnect()
         end
-        espObjects[player.UserId] = nil  -- Clear from table
+        espObjects[player.UserId] = nil
     end
 end
 
--- Enable/Disable ESP
 local function ToggleDistanceESP(state)
     getgenv().Pinguin.DistanceSettings.Enabled = state
     if state then
-        -- Enable ESP for all players
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= Players.LocalPlayer then
                 player.CharacterAdded:Connect(function(character)
@@ -88,7 +84,6 @@ local function ToggleDistanceESP(state)
             end
         end
     else
-        -- Disable ESP for all players
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= Players.LocalPlayer then
                 RemoveDistanceESP(player)
@@ -97,5 +92,4 @@ local function ToggleDistanceESP(state)
     end
 end
 
--- Return the toggle function for use in the main script
 return ToggleDistanceESP
