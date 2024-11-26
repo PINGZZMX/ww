@@ -1,3 +1,12 @@
+-- Ensure this script is loaded successfully before executing the toggle
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local playerCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local playerHumanoid = playerCharacter:WaitForChild("Humanoid")
+local playerHumanoidRootPart = playerCharacter:WaitForChild("HumanoidRootPart")
+
+-- Define the Tpwalking function and global variables
 getgenv().TPWalkMode = function()
     if getgenv().seltpwallkmode == nil then
         return playerHumanoid.MoveDirection
@@ -36,7 +45,8 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-function ToggleWalkspeed(State)
+-- Define the ToggleWalkspeed function globally
+function getgenv().ToggleWalkspeed(State)
     getgenv().ToggleTpwalk = State
     if State then
         TpwalkConnection = RunService.Heartbeat:Connect(Tpwalking)
