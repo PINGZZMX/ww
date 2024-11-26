@@ -1,7 +1,7 @@
--- Ensure HeadDotSettings is globally accessible
+-- Ensure that HeadDotSettings is globally accessible
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.HeadDotSettings = getgenv().Pinguin.HeadDotSettings or {
-    Enabled = false, -- Initially set to false; button toggles it
+    Enabled = false,
     Color = Color3.fromRGB(255, 255, 255),
     Transparency = 0.5,
     Thickness = 1,
@@ -60,34 +60,39 @@ local function RemoveHeadDot(Player)
     end
 end
 
--- Return functions for toggling HeadDot ESP
-return {
-    ToggleHeadDotESP = function(state)
-        getgenv().Pinguin.HeadDotSettings.Enabled = state
+-- Toggle function for the head dot
+local function ToggleHeadDotESP(state)
+    getgenv().Pinguin.HeadDotSettings.Enabled = state
 
-        -- Update visibility for all active head dots
+    -- Update visibility for all active head dots
+    for _, data in pairs(playerDots) do
+        if data.headDot then
+            data.headDot.Visible = state
+        end
+    end
+end
+
+-- Initialize the module
+local function Initialize()
+    -- Initial setup for all players
+    for _, player in ipairs(Players:GetPlayers()) do
+        AddHeadDot(player)
+    end
+
+    Players.PlayerAdded:Connect(AddHeadDot)
+    Players.PlayerRemoving:Connect(RemoveHeadDot)
+
+    LocalPlayer.CharacterRemoving:Connect(function()
         for _, data in pairs(playerDots) do
             if data.headDot then
-                data.headDot.Visible = state
+                data.headDot.Visible = false
             end
         end
-    end,
+    end)
+end
 
-    Initialize = function()
-        -- Initial setup for all players
-        for _, player in ipairs(Players:GetPlayers()) do
-            AddHeadDot(player)
-        end
-
-        Players.PlayerAdded:Connect(AddHeadDot)
-        Players.PlayerRemoving:Connect(RemoveHeadDot)
-
-        LocalPlayer.CharacterRemoving:Connect(function()
-            for _, data in pairs(playerDots) do
-                if data.headDot then
-                    data.headDot.Visible = false
-                end
-            end
-        end)
-    end
+-- Expose the functions to the main script
+return {
+    ToggleHeadDotESP = ToggleHeadDotESP,
+    Initialize = Initialize
 }
