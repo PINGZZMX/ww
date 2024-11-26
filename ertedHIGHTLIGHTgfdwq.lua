@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.ChamsSettings = getgenv().Pinguin.ChamsSettings or {
-    Enabled = false,  -- Default is false so Chams are OFF when the script loads
+    Enabled = false,
     Color = Color3.fromRGB(255, 255, 255)
 }
 
@@ -27,16 +27,18 @@ local function highlightPlayer(player)
         end
     end
 
-    local highlight = Instance.new("Highlight")
-    highlight.Name = "PlayerHighlight"
-    highlight.FillColor = getgenv().Pinguin.ChamsSettings.Color
-    highlight.FillTransparency = 1
-    highlight.OutlineColor = lightenColor(getgenv().Pinguin.ChamsSettings.Color, 0.3)
-    highlight.Parent = player.Character
+    if getgenv().Pinguin.ChamsSettings.Enabled then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "PlayerHighlight"
+        highlight.FillColor = getgenv().Pinguin.ChamsSettings.Color
+        highlight.FillTransparency = 1
+        highlight.OutlineColor = lightenColor(getgenv().Pinguin.ChamsSettings.Color, 0.3)
+        highlight.Parent = player.Character
+    end
 end
 
 local function onPlayerAdded(player)
-    if getgenv().Pinguin.ChamsSettings.Enabled then  -- Check if Chams are enabled before applying
+    if getgenv().Pinguin.ChamsSettings.Enabled then
         if player.Character then
             highlightPlayer(player)
         end
@@ -46,11 +48,19 @@ local function onPlayerAdded(player)
     end
 end
 
+local function onPlayerRemoved(player)
+    local highlight = player.Character and player.Character:FindFirstChild("PlayerHighlight")
+    if highlight then
+        highlight:Destroy()
+    end
+end
+
 for _, player in pairs(Players:GetPlayers()) do
     onPlayerAdded(player)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoved)
 
 Players.PlayerAdded:Connect(function(player)
     player:GetPropertyChangedSignal("Team"):Connect(function()
