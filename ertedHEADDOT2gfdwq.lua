@@ -75,9 +75,11 @@ return {
     end,
 
     Initialize = function()
-        -- Initial setup for all players
-        for _, player in ipairs(Players:GetPlayers()) do
-            AddHeadDot(player)
+        -- Ensure the playerDots table is initialized
+        if not next(playerDots) then
+            for _, player in ipairs(Players:GetPlayers()) do
+                AddHeadDot(player)
+            end
         end
 
         Players.PlayerAdded:Connect(AddHeadDot)
