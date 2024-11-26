@@ -14,7 +14,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- Table to keep track of head dots for each player
+-- Initialize playerDots table to store head dot data
 local playerDots = {}
 
 -- Function to add a head dot for a player
@@ -61,6 +61,14 @@ local function RemoveHeadDot(Player)
     end
 end
 
+-- Ensure playerDots is initialized properly
+local function InitializePlayerDots()
+    -- Initialize playerDots for already existing players
+    for _, player in ipairs(Players:GetPlayers()) do
+        AddHeadDot(player)
+    end
+end
+
 -- Return functions for toggling HeadDot ESP
 return {
     ToggleHeadDotESP = function(state)
@@ -75,12 +83,8 @@ return {
     end,
 
     Initialize = function()
-        -- Ensure the playerDots table is initialized
-        if not next(playerDots) then
-            for _, player in ipairs(Players:GetPlayers()) do
-                AddHeadDot(player)
-            end
-        end
+        -- Initialize playerDots when the script runs
+        InitializePlayerDots()
 
         Players.PlayerAdded:Connect(AddHeadDot)
         Players.PlayerRemoving:Connect(RemoveHeadDot)
