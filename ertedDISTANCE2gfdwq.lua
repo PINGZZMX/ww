@@ -58,11 +58,11 @@ end
 local function RemoveDistanceESP(player)
     local espData = espObjects[player.UserId]
     if espData then
-        espData.text:Remove()
+        espData.text:Remove()  -- Remove the drawing
         for _, connection in pairs(espData.connections) do
-            connection:Disconnect()
+            connection:Disconnect()  -- Disconnect all connections
         end
-        espObjects[player.UserId] = nil
+        espObjects[player.UserId] = nil  -- Clear from table
     end
 end
 
