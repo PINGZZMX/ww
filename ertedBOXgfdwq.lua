@@ -93,13 +93,19 @@ local function WrapPlayer(Player)
     local PlayerBox = CreateBox(Player)
     Environment.WrappedPlayers[Player.UserId] = PlayerBox
 
+    -- Ensure we only update the box if it exists
     PlayerBox.UpdateConnection = RunService.RenderStepped:Connect(function()
-        PlayerBox.Update()
+        if PlayerBox.Square then
+            PlayerBox.Update()
+        end
     end)
 
     Player.AncestryChanged:Connect(function(_, Parent)
         if not Parent then
-            PlayerBox.Remove()
+            -- Only remove the box if it exists
+            if PlayerBox.Square then
+                PlayerBox.Remove()
+            end
             Environment.WrappedPlayers[Player.UserId] = nil
             Environment.TeammateStatus[Player.UserId] = nil
             PlayerBox.UpdateConnection:Disconnect()
@@ -107,6 +113,7 @@ local function WrapPlayer(Player)
         end
     end)
 end
+
 
 -- Function to refresh all ESP boxes
 local function RefreshBoxes()
