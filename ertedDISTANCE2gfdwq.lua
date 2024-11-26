@@ -10,8 +10,8 @@ getgenv().Pinguin.DistanceSettings = getgenv().Pinguin.DistanceSettings or {
     Color = Color3.fromRGB(255, 255, 255)  -- Default color (white)
 }
 
--- Table to hold ESP data
-local espObjects = {}
+-- Initialize espObjects if not already initialized
+local espObjects = getgenv().Pinguin.ESPObjects or {}
 
 -- Utility function to calculate distance from the camera
 local function GetDistanceFromCamera(part)
@@ -20,9 +20,10 @@ end
 
 -- Function to update the ESP color for all objects
 local function UpdateESPColor()
-    -- Ensure espObjects table is initialized
+    -- Ensure espObjects table exists and is valid
     if type(espObjects) ~= "table" then
-        espObjects = {}
+        espObjects = {}  -- Reinitialize if it's invalid
+        getgenv().Pinguin.ESPObjects = espObjects  -- Update the global environment
     end
     
     -- Update the color for each ESP element
