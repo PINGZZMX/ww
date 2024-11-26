@@ -1,12 +1,11 @@
--- Ensure this script is loaded successfully before executing the toggle
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+
 local playerCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local playerHumanoid = playerCharacter:WaitForChild("Humanoid")
 local playerHumanoidRootPart = playerCharacter:WaitForChild("HumanoidRootPart")
 
--- Define the Tpwalking function and global variables
 getgenv().TPWalkMode = function()
     if getgenv().seltpwallkmode == nil then
         return playerHumanoid.MoveDirection
@@ -32,20 +31,7 @@ local tpwalkmodes = {
     end,
 }
 
-local TpwalkConnection
-RunService.Heartbeat:Connect(function()
-    if getgenv().ToggleTpwalk then
-        if not TpwalkConnection then
-            TpwalkConnection = RunService.Heartbeat:Connect(Tpwalking)
-        end
-    elseif TpwalkConnection then
-        TpwalkConnection:Disconnect()
-        TpwalkConnection = nil
-        playerHumanoidRootPart.CanCollide = false
-    end
-end)
-
--- Define the ToggleWalkspeed function globally
+-- Add toggle function for Walkspeed
 function getgenv().ToggleWalkspeed(State)
     getgenv().ToggleTpwalk = State
     if State then
@@ -55,4 +41,9 @@ function getgenv().ToggleWalkspeed(State)
         TpwalkConnection = nil
         playerHumanoidRootPart.CanCollide = false
     end
+end
+
+-- Add a Walkspeed Slider function
+function getgenv().SetWalkspeed(Value)
+    getgenv().TpwalkValue = Value
 end
