@@ -1,79 +1,92 @@
--- Name ESP Module (Refactored)
-getgenv().Pinguin = getgenv().Pinguin or {}
-getgenv().Pinguin.NameESPSettings = getgenv().Pinguin.NameESPSettings or {
-    Enabled = false,
-    Color = Color3.fromRGB(255, 255, 255),
-    Transparency = 0.5,
-    TextSize = 15
-}
+-- Module for Name functionality
 
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
-local Holder = Instance.new("Folder", game.CoreGui)
-Holder.Name = "ESP"
+local CoreGui = game:GetService("CoreGui")
 
-local playerTags = {}
+getgenv().Pinguin = getgenv().Pinguin or {}
+getgenv().Pinguin.NameSettings = getgenv().Pinguin.NameSettings or {
+    Enabled = false,
+    Color = Color3.fromRGB(255, 255, 255)
+}
 
-local function AddNameTag(Player)
-    if Player == LocalPlayer then return end
+local Holder = CoreGui:FindFirstChild("NameFolder") or Instance.new("Folder", CoreGui)
+Holder.Name = "NameFolder"
 
-    local folder = Instance.new("Folder", Holder)
-    folder.Name = Player.Name
+local nameTags = {}
 
-    local tagGui = Instance.new("BillboardGui", folder)
-    tagGui.Name = Player.Name .. "NameTag"
-    tagGui.Size = UDim2.new(0, 200, 0, 50)
-    tagGui.AlwaysOnTop = true
-    tagGui.StudsOffset = Vector3.new(0, 1.8, 0)
+local function CreateNameTag(player)
+    if player == Players.LocalPlayer or not player.Character then return end
 
-    local tagLabel = Instance.new("TextLabel", tagGui)
-    tagLabel.Size = UDim2.new(1, 0, 1, 0)
-    tagLabel.BackgroundTransparency = 1
-    tagLabel.TextColor3 = getgenv().Pinguin.NameESPSettings.Color
-    tagLabel.TextTransparency = getgenv().Pinguin.NameESPSettings.Transparency
-    tagLabel.Text = Player.Name
-    tagLabel.TextSize = getgenv().Pinguin.NameESPSettings.TextSize
-    tagLabel.Font = Enum.Font.SourceSansBold
+    local character = player.Character
+    local head = character:FindFirstChild("Head")
+    if not head then return end
 
-    playerTags[Player.UserId] = { gui = tagGui }
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = player.Name .. "_NameTag"
+    billboard.Adornee = head
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2, 0)
+    billboard.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel", billboard)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = getgenv().Pinguin.NameSettings.Color
+    label.Text = player.Name
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 14
+
+    billboard.Parent = Holder
+    nameTags[player.UserId] = billboard
 end
 
-local function RemoveNameTag(Player)
-    local tagData = playerTags[Player.UserId]
-    if tagData and tagData.gui then
-        tagData.gui:Destroy()
-        playerTags[Player.UserId] = nil
+local function RemoveNameTag(player)
+    if nameTags[player.UserId] then
+        nameTags[player.UserId]:Destroy()
+        nameTags[player.UserId] = nil
     end
 end
 
-local function UpdateAllTags()
-    for _, data in pairs(playerTags) do
-        if data.gui then
-            data.gui:FindFirstChildOfClass("TextLabel").TextColor3 = getgenv().Pinguin.NameESPSettings.Color
-            data.gui:FindFirstChildOfClass("TextLabel").TextTransparency = getgenv().Pinguin.NameESPSettings.Transparency
+local function ToggleNames(state)
+    getgenv().Pinguin.NameSettings.Enabled = state
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if state then
+            CreateNameTag(player)
+        else
+            RemoveNameTag(player)
         end
     end
 end
+
+local function UpdateSettings()
+    for _, tag in pairs(nameTags) do
+        if tag and tag:FindFirstChildOfClass("TextLabel") then
+            tag.TextLabel.TextColor3 = getgenv().Pinguin.NameSettings.Color
+        end
+    end
+end
+
+-- Monitor players joining and leaving
+Players.PlayerAdded:Connect(function(player)
+    if getgenv().Pinguin.NameSettings.Enabled then
+        CreateNameTag(player)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    RemoveNameTag(player)
+end)
 
 return {
-    ToggleNameESP = function(state)
-        getgenv().Pinguin.NameESPSettings.Enabled = state
-
-        if state then
-            for _, player in ipairs(Players:GetPlayers()) do
-                AddNameTag(player)
+    Initialize = function()
+        for _, player in ipairs(Players:GetPlayers()) do
+            if getgenv().Pinguin.NameSettings.Enabled then
+                CreateNameTag(player)
             end
-            Players.PlayerAdded:Connect(AddNameTag)
-            Players.PlayerRemoving:Connect(RemoveNameTag)
-        else
-            for _, data in pairs(playerTags) do
-                if data.gui then
-                    data.gui:Destroy()
-                end
-            end
-            playerTags = {}
         end
     end,
-    UpdateSettings = UpdateAllTags
+    Toggle = ToggleNames,
+    UpdateSettings = UpdateSettings
 }
