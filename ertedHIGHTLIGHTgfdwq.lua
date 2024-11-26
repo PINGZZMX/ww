@@ -5,59 +5,81 @@ local RunService = game:GetService("RunService")
 
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.ChamsSettings = getgenv().Pinguin.ChamsSettings or {
-    Enabled = false,
+    Enabled = false,  -- Default is false so Chams are OFF when the script loads
     Color = Color3.fromRGB(255, 255, 255)
 }
 
-local chamsObjects = {}
-
-local function UpdateChamsColor()
-    for _, chamsData in pairs(chamsObjects) do
-        chamsData.Highlight.FillColor = getgenv().Pinguin.ChamsSettings.Color
-        chamsData.Highlight.OutlineColor = getgenv().Pinguin.ChamsSettings.Color
-    end
+local function lightenColor(color, factor)
+    return Color3.new(
+        math.min(color.R + factor, 1),
+        math.min(color.G + factor, 1),
+        math.min(color.B + factor, 1)
+    )
 end
 
-local function ApplyChams(player)
-    if player == game.Players.LocalPlayer or not player.Character then return end
+local function highlightPlayer(player)
+    if player == LocalPlayer then return end
 
-    local character = player.Character
+    if player.Character then
+        local existingHighlight = player.Character:FindFirstChild("PlayerHighlight")
+        if existingHighlight then
+            existingHighlight:Destroy()
+        end
+    end
+
     local highlight = Instance.new("Highlight")
-    highlight.Name = "PlayerChams"
+    highlight.Name = "PlayerHighlight"
     highlight.FillColor = getgenv().Pinguin.ChamsSettings.Color
-    highlight.OutlineColor = getgenv().Pinguin.ChamsSettings.Color
-    highlight.FillTransparency = 0.5
-    highlight.OutlineTransparency = 0.5
-    highlight.Parent = character
-
-    chamsObjects[player.UserId] = {Highlight = highlight}
+    highlight.FillTransparency = 1
+    highlight.OutlineColor = lightenColor(getgenv().Pinguin.ChamsSettings.Color, 0.3)
+    highlight.Parent = player.Character
 end
 
-local function RemoveChams(player)
-    local chamsData = chamsObjects[player.UserId]
-    if chamsData then
-        chamsData.Highlight:Destroy()
-        chamsObjects[player.UserId] = nil
+local function onPlayerAdded(player)
+    if getgenv().Pinguin.ChamsSettings.Enabled then  -- Check if Chams are enabled before applying
+        if player.Character then
+            highlightPlayer(player)
+        end
+        player.CharacterAdded:Connect(function()
+            highlightPlayer(player)
+        end)
     end
 end
+
+for _, player in pairs(Players:GetPlayers()) do
+    onPlayerAdded(player)
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+
+Players.PlayerAdded:Connect(function(player)
+    player:GetPropertyChangedSignal("Team"):Connect(function()
+        if player.Character then
+            highlightPlayer(player)
+        end
+    end)
+end)
 
 local function ToggleChams(state)
     getgenv().Pinguin.ChamsSettings.Enabled = state
     if state then
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                player.CharacterAdded:Connect(function()
-                    ApplyChams(player)
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                player.CharacterAdded:Connect(function(character)
+                    highlightPlayer(player)
                 end)
                 if player.Character then
-                    ApplyChams(player)
+                    highlightPlayer(player)
                 end
             end
         end
     else
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                RemoveChams(player)
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                local highlight = player.Character:FindFirstChild("PlayerHighlight")
+                if highlight then
+                    highlight:Destroy()
+                end
             end
         end
     end
