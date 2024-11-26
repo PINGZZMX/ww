@@ -5,7 +5,7 @@ local Camera = workspace.CurrentCamera
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.DistanceSettings = getgenv().Pinguin.DistanceSettings or {
     Enabled = false,
-    Color = Color3.fromRGB(255, 255, 255)
+    Color = Color3.fromRGB(255, 255, 255)  -- Default color is white
 }
 
 local espObjects = {}
