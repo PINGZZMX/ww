@@ -10,12 +10,20 @@ getgenv().Pinguin.DistanceSettings = getgenv().Pinguin.DistanceSettings or {
 
 local espObjects = {}  -- Ensure the table is initialized
 
+-- Ensure espObjects is initialized properly
+local function EnsureEspObjectsInitialized()
+    if type(espObjects) ~= "table" then
+        espObjects = {}
+    end
+end
+
 local function GetDistanceFromCamera(part)
     return (part.Position - Camera.CFrame.Position).Magnitude
 end
 
 local function UpdateESPColor()
-    -- Check if espObjects is not nil and is a valid table before proceeding
+    EnsureEspObjectsInitialized()  -- Make sure espObjects is initialized
+    -- Now update the color only if espObjects exists and is a valid table
     if espObjects and type(espObjects) == "table" then
         for _, espData in pairs(espObjects) do
             espData.text.Color = getgenv().Pinguin.DistanceSettings.Color
