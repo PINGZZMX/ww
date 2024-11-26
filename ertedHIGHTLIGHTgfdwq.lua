@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.ChamsSettings = getgenv().Pinguin.ChamsSettings or {
-    Enabled = false,
+    Enabled = false,  -- Default is false so Chams are OFF when the script loads
     Color = Color3.fromRGB(255, 255, 255)
 }
 
@@ -36,12 +36,14 @@ local function highlightPlayer(player)
 end
 
 local function onPlayerAdded(player)
-    if player.Character then
-        highlightPlayer(player)
+    if getgenv().Pinguin.ChamsSettings.Enabled then  -- Check if Chams are enabled before applying
+        if player.Character then
+            highlightPlayer(player)
+        end
+        player.CharacterAdded:Connect(function()
+            highlightPlayer(player)
+        end)
     end
-    player.CharacterAdded:Connect(function()
-        highlightPlayer(player)
-    end)
 end
 
 for _, player in pairs(Players:GetPlayers()) do
