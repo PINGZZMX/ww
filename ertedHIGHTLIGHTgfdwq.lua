@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.ChamsSettings = getgenv().Pinguin.ChamsSettings or {
-    Enabled = false,
+    Enabled = false,  -- Default state is false (OFF)
     Color = Color3.fromRGB(255, 255, 255)
 }
 
