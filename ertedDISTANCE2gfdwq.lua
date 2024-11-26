@@ -16,6 +16,12 @@ local function GetDistanceFromCamera(part)
     return (part.Position - Camera.CFrame.Position).Magnitude
 end
 
+local function UpdateESPColor()
+    for _, espData in pairs(espObjects) do
+        espData.text.Color = getgenv().Pinguin.DistanceSettings.Color  -- Update color for active ESP
+    end
+end
+
 local function AddDistanceESP(player)
     if player == Players.LocalPlayer or not player.Character then return end
 
