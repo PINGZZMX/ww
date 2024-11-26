@@ -57,3 +57,30 @@ Players.PlayerAdded:Connect(function(player)
         end
     end)
 end)
+
+local function ToggleChams(state)
+    getgenv().Pinguin.ChamsSettings.Enabled = state
+    if state then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                player.CharacterAdded:Connect(function(character)
+                    highlightPlayer(player)
+                end)
+                if player.Character then
+                    highlightPlayer(player)
+                end
+            end
+        end
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                local highlight = player.Character:FindFirstChild("PlayerHighlight")
+                if highlight then
+                    highlight:Destroy()
+                end
+            end
+        end
+    end
+end
+
+return ToggleChams
