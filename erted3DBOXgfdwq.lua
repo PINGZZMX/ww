@@ -1,38 +1,45 @@
--- 3D Boxes ESP Script (3DBoxes.lua)
 return function(toggleStateCallback)
     local workspace = game:GetService("Workspace")
     local camera = workspace.CurrentCamera
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
 
-    local Box_Color = Color3.new(1.000000, 1.000000, 1.000000)
-    local Box_Thickness = 1
-    local Box_Transparency = 1
+    -- Using Environment to store settings
+    getgenv().PinguinHub = getgenv().PinguinHub or {}
+    getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
+        Settings = {
+            BoxSettings = {
+                Color = Color3.fromRGB(255, 255, 255),
+                Transparency = 1,
+                Thickness = 1,
+                Enabled = true
+            }
+        },
+        WrappedPlayers = {}
+    }
 
-    local Team_Check = false
-    local red = Color3.fromRGB(227, 52, 52)
-    local green = Color3.fromRGB(88, 217, 24)
+    local Environment = getgenv().PinguinHub.WallHack
 
     local function NewLine()
         local line = Drawing.new("Line")
         line.Visible = false
         line.From = Vector2.new(0, 0)
         line.To = Vector2.new(1, 1)
-        line.Color = Box_Color
-        line.Thickness = Box_Thickness
-        line.Transparency = Box_Transparency
+        line.Color = Environment.Settings.BoxSettings.Color
+        line.Thickness = Environment.Settings.BoxSettings.Thickness
+        line.Transparency = Environment.Settings.BoxSettings.Transparency
         return line
     end
 
     local active = false
     local connections = {}
-    local currentESP = {}  -- To store current active ESPs
+    local currentESP = {}
 
     local function clearESP()
         for _, line in pairs(currentESP) do
-            line.Visible = false  -- Hide the lines
+            line.Visible = false
         end
-        currentESP = {}  -- Clear the stored ESPs
+        currentESP = {}
     end
 
     local function createESP(player)
@@ -45,11 +52,11 @@ return function(toggleStateCallback)
             line11 = NewLine(), line12 = NewLine()
         }
 
-        currentESP = lines  -- Save the lines to currentESP
+        currentESP = lines
 
         local function updateESP()
             if not active or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-                clearESP()  -- If no character or root part, clear ESP
+                clearESP()
                 return
             end
 
@@ -99,7 +106,7 @@ return function(toggleStateCallback)
                     line.Visible = true
                 end
             else
-                clearESP()  -- Clear if not visible
+                clearESP()
             end
         end
 
@@ -109,8 +116,7 @@ return function(toggleStateCallback)
     local function toggleState(state)
         active = state
         if state then
-            -- Only create ESP for each player if it's turned on
-            clearESP()  -- Clear existing ESP before enabling new ones
+            clearESP()
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= Players.LocalPlayer then
                     createESP(player)
@@ -120,7 +126,7 @@ return function(toggleStateCallback)
                 createESP(newPlayer)
             end)
         else
-            clearESP()  -- Clear the ESP when turned off
+            clearESP()
             for _, connection in pairs(connections) do
                 connection:Disconnect()
             end
