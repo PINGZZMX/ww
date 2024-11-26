@@ -2,14 +2,12 @@ getgenv().TPWalkMode = function()
     if getgenv().seltpwallkmode == nil then
         return playerHumanoid.MoveDirection
     else
-        if getgenv().seltpwallkmode ~= nil then
-            return getgenv().seltpwallkmode()
-        end
+        return getgenv().seltpwallkmode()
     end
 end
 
 function Tpwalking()
-    TpwalkValuefunc = getgenv().TpwalkValue or 3.5
+    local TpwalkValuefunc = getgenv().TpwalkValue or 16
     if getgenv().ToggleTpwalk and playerCharacter and playerHumanoid and playerHumanoidRootPart then
         playerHumanoidRootPart.CFrame += (getgenv().TPWalkMode() * TpwalkValuefunc)
         playerHumanoidRootPart.CanCollide = true
@@ -18,20 +16,31 @@ end
 
 local tpwalkmodes = {
     ["Camera LookVector"] = function()
-        re = game:GetService("Workspace").Camera.CFrame.LookVector
-        return re
+        return game:GetService("Workspace").Camera.CFrame.LookVector
     end,
     ["MoveDirection"] = function()
         return playerHumanoid.MoveDirection
     end,
 }
 
-Callback = function(Value)
-    getgenv().ToggleTpwalk = Value
-    ToggleTpwalk = not ToggleTpwalk
-    if getgenv().ToggleTpwalk and not TpwalkConnection then
+local TpwalkConnection
+RunService.Heartbeat:Connect(function()
+    if getgenv().ToggleTpwalk then
+        if not TpwalkConnection then
+            TpwalkConnection = RunService.Heartbeat:Connect(Tpwalking)
+        end
+    elseif TpwalkConnection then
+        TpwalkConnection:Disconnect()
+        TpwalkConnection = nil
+        playerHumanoidRootPart.CanCollide = false
+    end
+end)
+
+function ToggleWalkspeed(State)
+    getgenv().ToggleTpwalk = State
+    if State then
         TpwalkConnection = RunService.Heartbeat:Connect(Tpwalking)
-    elseif not getgenv().ToggleTpwalk and TpwalkConnection then
+    elseif TpwalkConnection then
         TpwalkConnection:Disconnect()
         TpwalkConnection = nil
         playerHumanoidRootPart.CanCollide = false
