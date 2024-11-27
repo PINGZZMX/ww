@@ -8,7 +8,7 @@ local Camera = workspace.CurrentCamera
 
 -- Environment
 getgenv().Pinguin = getgenv().Pinguin or {}
-getgenv().Pinguin.TracerModule = getgenv().Pinguin.TracerModule or { Settings = { Enabled = true, Transparency = 1, Thickness = 2, Color = Color3.new(1, 1, 1) }, WrappedPlayers = {} }
+getgenv().Pinguin.TracerModule = getgenv().Pinguin.TracerModule or { Settings = { Enabled = true, Transparency = 0.5, Thickness = 1, Color = Color3.new(1, 1, 1) }, WrappedPlayers = {} }
 local Environment = getgenv().Pinguin.TracerModule
 
 -- Function to check if the player is on screen and create tracers
