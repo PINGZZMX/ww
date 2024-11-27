@@ -15,8 +15,8 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
             Enabled = true,
             Type = 1,
             Color = Color3fromRGB(255, 255, 255),
-            Transparency = 0.5,
-            Thickness = 1,
+            Transparency = 1,
+            Thickness = 1.5,
             Filled = false
         }
     },
