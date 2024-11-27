@@ -28,7 +28,7 @@ local function Wrap(Player)
                     PlayerTable.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y) -- Bottom of the screen
 
                     -- Modify the position of the tracer on the Y-axis to move it up or down
-                    local offset = 10 -- Adjust this value to move the tracer up or down
+                    local offset = 0 -- Adjust this value to move the tracer up or down
                     PlayerTable.Tracer.To = Vector2.new(Position.X, Position.Y + offset) -- Adjust position here
 
                     PlayerTable.Tracer.Color = Environment.Settings.Color
