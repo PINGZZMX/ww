@@ -1,6 +1,4 @@
 local function setupWorkbench()
-    getgenv().AutoWorkbench = false
-
     local serverFurnitureFolder = game:GetService("Workspace").ServerFurniture
     local player = game:GetService("Players").LocalPlayer
     local playerRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
