@@ -130,7 +130,6 @@ end
 -- Function to toggle ESP visibility
 local function toggleESP(state)
     Environment.Settings.BoxSettings.Enabled = state
-    print("Box ESP:", state and "ON" or "OFF")
 
     if state then
         RefreshBoxes()
