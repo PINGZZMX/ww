@@ -79,8 +79,10 @@ local function setupWorkbench()
             for _, object in pairs(data.Objects) do
                 object.Transparency = 0
                 object.CanCollide = true
+                object.CFrame = data.OriginalCFrames[object]  -- Teleport back to the original position
             end
         end
+        originalPositions = {}
     end
 
     if getgenv().AutoWorkbench then
@@ -88,15 +90,6 @@ local function setupWorkbench()
         teleportAndFollowWorkbench()
     else
         stopFollowingWorkbench()
-        wait(0.5)
-
-        for model, data in pairs(originalPositions) do
-            for _, object in pairs(data.Objects) do
-                object.CFrame = data.OriginalCFrames[object]
-            end
-        end
-
-        originalPositions = {}
     end
 end
 
