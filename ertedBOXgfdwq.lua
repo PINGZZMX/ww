@@ -16,6 +16,8 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
             Type = 1,
             Color = Color3fromRGB(255, 255, 255),
             Transparency = 0.5,
+            FillColor = Color3fromRGB(255, 255, 255),
+            FillTransparency = 0.2,
             Thickness = 1,
             Filled = false
         }
@@ -26,7 +28,6 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
 
 local Environment = getgenv().PinguinHub.WallHack
 
--- Function to check if the player is a teammate
 local function IsPlayerTeammate(Player)
     if Environment.TeammateStatus[Player.UserId] ~= nil then
         return Environment.TeammateStatus[Player.UserId]
@@ -45,19 +46,25 @@ local function IsPlayerTeammate(Player)
     return false
 end
 
--- Function to create ESP box for a player
 local function CreateBox(Player)
     local Box = {}
-    Box.Square = Drawingnew("Square")
-    Box.Square.Color = Environment.Settings.BoxSettings.Color
-    Box.Square.Transparency = Environment.Settings.BoxSettings.Transparency
-    Box.Square.Thickness = Environment.Settings.BoxSettings.Thickness
-    Box.Square.Filled = Environment.Settings.BoxSettings.Filled
+    Box.BorderSquare = Drawingnew("Square")
+    Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
+    Box.BorderSquare.Transparency = Environment.Settings.BoxSettings.Transparency
+    Box.BorderSquare.Thickness = Environment.Settings.BoxSettings.Thickness
+    Box.BorderSquare.Filled = false
+
+    Box.FillSquare = Drawingnew("Square")
+    Box.FillSquare.Color = Environment.Settings.BoxSettings.FillColor
+    Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
+    Box.FillSquare.Thickness = 0
+    Box.FillSquare.Filled = true
 
     Box.Update = function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
             if IsPlayerTeammate(Player) then
-                Box.Square.Visible = false
+                Box.BorderSquare.Visible = false
+                Box.FillSquare.Visible = false
                 return
             end
 
@@ -67,45 +74,49 @@ local function CreateBox(Player)
                 local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
                 if OnScreen then
-                    Box.Square.Size = Vector2new(2000 / Pos.Z, height / Pos.Z)
-                    Box.Square.Position = Vector2new(Pos.X - Box.Square.Size.X / 2, Pos.Y - Box.Square.Size.Y / 2.475)
-                    Box.Square.Visible = true
+                    local sizeX = 2000 / Pos.Z
+                    local sizeY = height / Pos.Z
+
+                    Box.BorderSquare.Size = Vector2new(sizeX, sizeY)
+                    Box.BorderSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                    Box.BorderSquare.Visible = true
+
+                    Box.FillSquare.Size = Vector2new(sizeX, sizeY)
+                    Box.FillSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
                 else
-                    Box.Square.Visible = false
+                    Box.BorderSquare.Visible = false
+                    Box.FillSquare.Visible = false
                 end
             else
-                Box.Square.Visible = false
+                Box.BorderSquare.Visible = false
+                Box.FillSquare.Visible = false
             end
         else
-            Box.Square.Visible = false
+            Box.BorderSquare.Visible = false
+            Box.FillSquare.Visible = false
         end
     end
 
     Box.Remove = function()
-        Box.Square:Remove()
+        Box.BorderSquare:Remove()
+        Box.FillSquare:Remove()
     end
 
     return Box
 end
 
--- Function to wrap a player with an ESP box
 local function WrapPlayer(Player)
     local PlayerBox = CreateBox(Player)
     Environment.WrappedPlayers[Player.UserId] = PlayerBox
 
-    -- Ensure we only update the box if it exists
     PlayerBox.UpdateConnection = RunService.RenderStepped:Connect(function()
-        if PlayerBox.Square then
-            PlayerBox.Update()
-        end
+        PlayerBox.Update()
     end)
 
     Player.AncestryChanged:Connect(function(_, Parent)
         if not Parent then
-            -- Only remove the box if it exists
-            if PlayerBox.Square then
-                PlayerBox.Remove()
-            end
+            PlayerBox.Remove()
             Environment.WrappedPlayers[Player.UserId] = nil
             Environment.TeammateStatus[Player.UserId] = nil
             PlayerBox.UpdateConnection:Disconnect()
@@ -114,8 +125,6 @@ local function WrapPlayer(Player)
     end)
 end
 
-
--- Function to refresh all ESP boxes
 local function RefreshBoxes()
     while Environment.Settings.BoxSettings.Enabled do
         for _, Player in pairs(Players:GetPlayers()) do
@@ -127,14 +136,12 @@ local function RefreshBoxes()
     end
 end
 
--- Function to toggle ESP visibility
 local function toggleESP(state)
     Environment.Settings.BoxSettings.Enabled = state
 
     if state then
         RefreshBoxes()
     else
-        -- Hide all boxes when ESP is disabled
         for _, PlayerBox in pairs(Environment.WrappedPlayers) do
             PlayerBox.Remove()
         end
@@ -142,5 +149,4 @@ local function toggleESP(state)
     end
 end
 
--- Return the toggle function for use in the main script
 return toggleESP
