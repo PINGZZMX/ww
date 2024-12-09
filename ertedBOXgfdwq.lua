@@ -76,7 +76,7 @@ local function CreateBox(Player)
                     Box.BorderSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
                     Box.BorderSquare.Visible = true
 
-                    Box.FillSquare.Size = Vector2.new(sizeX - 4, sizeY - 4)
+                    Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
                     Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
 
                     Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
