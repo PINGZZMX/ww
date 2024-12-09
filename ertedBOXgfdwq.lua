@@ -101,6 +101,15 @@ local function CreateBox(Player)
     return Box
 end
 
+local function UpdateBoxSettings(Box)
+    Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
+    Box.BorderSquare.Transparency = Environment.Settings.BoxSettings.Transparency
+    Box.BorderSquare.Thickness = Environment.Settings.BoxSettings.Thickness
+    Box.FillSquare.Color = Environment.Settings.BoxSettings.FillColor
+    Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
+    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
+end
+
 local function WrapPlayer(Player)
     local PlayerBox = CreateBox(Player)
     Environment.WrappedPlayers[Player.UserId] = PlayerBox
@@ -127,6 +136,12 @@ local function RefreshBoxes()
                 WrapPlayer(Player)
             end
         end
+
+        -- Update settings for existing boxes
+        for _, PlayerBox in pairs(Environment.WrappedPlayers) do
+            UpdateBoxSettings(PlayerBox)
+        end
+
         wait(0.1)
     end
 end
