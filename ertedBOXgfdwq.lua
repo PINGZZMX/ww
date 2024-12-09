@@ -19,7 +19,7 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
             FillColor = Color3fromRGB(255, 255, 255),
             FillTransparency = 0.2,
             Thickness = 1,
-            Filled = false
+            Filled = true -- Set to true for filled boxes
         }
     },
     WrappedPlayers = {},
@@ -49,14 +49,14 @@ end
 local function CreateBox(Player)
     local Box = {}
     Box.BorderSquare = Drawing.new("Square")
-    Box.BorderSquare.Color = Environment.Boxes.Settings.BoxSettings.Color
-    Box.BorderSquare.Transparency = Environment.Boxes.Settings.BoxSettings.Transparency
-    Box.BorderSquare.Thickness = Environment.Boxes.Settings.BoxSettings.Thickness
+    Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
+    Box.BorderSquare.Transparency = Environment.Settings.BoxSettings.Transparency
+    Box.BorderSquare.Thickness = Environment.Settings.BoxSettings.Thickness
     Box.BorderSquare.Filled = false
 
     Box.FillSquare = Drawing.new("Square")
-    Box.FillSquare.Color = Environment.Boxes.Settings.BoxSettings.FillColor
-    Box.FillSquare.Transparency = Environment.Boxes.Settings.BoxSettings.FillTransparency
+    Box.FillSquare.Color = Environment.Settings.BoxSettings.FillColor
+    Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
     Box.FillSquare.Thickness = 0
     Box.FillSquare.Filled = true
 
@@ -78,11 +78,7 @@ local function CreateBox(Player)
                     Box.FillSquare.Size = Vector2.new(sizeX - 4, sizeY - 4)
                     Box.FillSquare.Position = Vector2.new(Pos.X - (sizeX / 2) + 2, Pos.Y - (sizeY / 2.475) + 2)
 
-                    if Environment.Boxes.Settings.BoxSettings.Filled then
-                        Box.FillSquare.Visible = true
-                    else
-                        Box.FillSquare.Visible = false
-                    end
+                    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
                 else
                     Box.BorderSquare.Visible = false
                     Box.FillSquare.Visible = false
@@ -104,7 +100,6 @@ local function CreateBox(Player)
 
     return Box
 end
-
 
 local function WrapPlayer(Player)
     local PlayerBox = CreateBox(Player)
