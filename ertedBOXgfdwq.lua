@@ -48,42 +48,37 @@ end
 
 local function CreateBox(Player)
     local Box = {}
-    Box.BorderSquare = Drawingnew("Square")
-    Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
-    Box.BorderSquare.Transparency = Environment.Settings.BoxSettings.Transparency
-    Box.BorderSquare.Thickness = Environment.Settings.BoxSettings.Thickness
-    Box.BorderSquare.Filled = false
+    Box.BorderSquare = Drawing.new("Square")
+    Box.FillSquare = Drawing.new("Square")
 
-    Box.FillSquare = Drawingnew("Square")
-    Box.FillSquare.Color = Environment.Settings.BoxSettings.FillColor
-    Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
-    Box.FillSquare.Thickness = 0
-    Box.FillSquare.Filled = true
+    local function UpdateProperties()
+        Box.BorderSquare.Color = Environment.Boxes.Settings.BoxSettings.Color
+        Box.BorderSquare.Thickness = Environment.Boxes.Settings.BoxSettings.Thickness
+        Box.BorderSquare.Transparency = Environment.Boxes.Settings.BoxSettings.Transparency
+
+        Box.FillSquare.Color = Environment.Boxes.Settings.BoxSettings.FillColor
+        Box.FillSquare.Transparency = Environment.Boxes.Settings.BoxSettings.FillTransparency
+        Box.FillSquare.Visible = Environment.Boxes.Settings.BoxSettings.Filled
+    end
 
     Box.Update = function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            if IsPlayerTeammate(Player) then
-                Box.BorderSquare.Visible = false
-                Box.FillSquare.Visible = false
-                return
-            end
-
             local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
             if humanoid then
-                local height = humanoid.RootPart.Size.Y * 2200
+                local height = Player.Character.HumanoidRootPart.Size.Y * 2200
                 local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
                 if OnScreen then
                     local sizeX = 2000 / Pos.Z
                     local sizeY = height / Pos.Z
-
-                    Box.BorderSquare.Size = Vector2new(sizeX, sizeY)
-                    Box.BorderSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                    
+                    Box.BorderSquare.Size = Vector2.new(sizeX, sizeY)
+                    Box.BorderSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
                     Box.BorderSquare.Visible = true
 
-                    Box.FillSquare.Size = Vector2new(sizeX, sizeY)
-                    Box.FillSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
+                    Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
+                    Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                    Box.FillSquare.Visible = Environment.Boxes.Settings.BoxSettings.Filled
                 else
                     Box.BorderSquare.Visible = false
                     Box.FillSquare.Visible = false
@@ -102,6 +97,9 @@ local function CreateBox(Player)
         Box.BorderSquare:Remove()
         Box.FillSquare:Remove()
     end
+
+    UpdateProperties()
+    Box.UpdateProperties = UpdateProperties
 
     return Box
 end
