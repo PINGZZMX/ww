@@ -77,7 +77,7 @@ local function CreateBox(Player)
                     Box.BorderSquare.Visible = true
 
                     Box.FillSquare.Size = Vector2.new(sizeX - 4, sizeY - 4)
-                    Box.FillSquare.Position = Vector2.new(Pos.X - (sizeX / 2) + 2, Pos.Y - (sizeY / 2.475) + 2)
+                    Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
 
                     Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
                 else
@@ -138,7 +138,6 @@ local function RefreshBoxes()
             end
         end
 
-        -- Update settings for existing boxes
         for _, PlayerBox in pairs(Environment.WrappedPlayers) do
             UpdateBoxSettings(PlayerBox)
         end
