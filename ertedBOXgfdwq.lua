@@ -52,13 +52,14 @@ local function CreateBox(Player)
     Box.FillSquare = Drawing.new("Square")
 
     local function UpdateProperties()
-        Box.BorderSquare.Color = Environment.Boxes.Settings.BoxSettings.Color
-        Box.BorderSquare.Thickness = Environment.Boxes.Settings.BoxSettings.Thickness
-        Box.BorderSquare.Transparency = Environment.Boxes.Settings.BoxSettings.Transparency
+        -- Corrected to access the right settings
+        Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
+        Box.BorderSquare.Thickness = Environment.Settings.BoxSettings.Thickness
+        Box.BorderSquare.Transparency = Environment.Settings.BoxSettings.Transparency
 
-        Box.FillSquare.Color = Environment.Boxes.Settings.BoxSettings.FillColor
-        Box.FillSquare.Transparency = Environment.Boxes.Settings.BoxSettings.FillTransparency
-        Box.FillSquare.Visible = Environment.Boxes.Settings.BoxSettings.Filled
+        Box.FillSquare.Color = Environment.Settings.BoxSettings.FillColor
+        Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
+        Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
     end
 
     Box.Update = function()
@@ -78,7 +79,7 @@ local function CreateBox(Player)
 
                     Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
                     Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                    Box.FillSquare.Visible = Environment.Boxes.Settings.BoxSettings.Filled
+                    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
                 else
                     Box.BorderSquare.Visible = false
                     Box.FillSquare.Visible = false
