@@ -19,7 +19,7 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
             FillColor = Color3fromRGB(255, 255, 255),
             FillTransparency = 0.2,
             Thickness = 1,
-            Filled = true -- Set to true for filled boxes
+            Filled = false -- Set to false by default
         }
     },
     WrappedPlayers = {},
@@ -59,6 +59,7 @@ local function CreateBox(Player)
     Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
     Box.FillSquare.Thickness = 0
     Box.FillSquare.Filled = true
+    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled -- Set visibility based on settings
 
     Box.Update = function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
