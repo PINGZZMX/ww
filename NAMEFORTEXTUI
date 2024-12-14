@@ -1,0 +1,30 @@
+-- Remote Name Module Example
+local NameModule = {}
+local playersWithTags = {}
+
+function NameModule.Initialize()
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        NameModule.TagPlayer(player, false)
+    end
+    game.Players.PlayerAdded:Connect(function(player)
+        NameModule.TagPlayer(player, false)
+    end)
+end
+
+function NameModule.TagPlayer(player, enable)
+    if enable then
+        playersWithTags[player.UserId] = true
+        -- Add code to show name tag
+    else
+        playersWithTags[player.UserId] = nil
+        -- Add code to hide name tag
+    end
+end
+
+function NameModule.Toggle(state)
+    for playerId in pairs(playersWithTags) do
+        NameModule.TagPlayer(game.Players:GetPlayerByUserId(playerId), state)
+    end
+end
+
+return NameModule
