@@ -10,7 +10,6 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
         TeamCheck = true,
         BoxSettings = {
             Enabled = true,
-            Type = 1,
             Color = Color3.fromRGB(255, 255, 255),
             Transparency = 0.5,
             FillColor = Color3.fromRGB(255, 255, 255),
@@ -26,29 +25,24 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
 local Environment = getgenv().PinguinHub.WallHack
 
 local function IsPlayerTeammate(Player)
+    if not Environment.Settings.TeamCheck then
+        return false
+    end
+
     if Environment.TeammateStatus[Player.UserId] ~= nil then
         return Environment.TeammateStatus[Player.UserId]
     end
 
-    -- If the player has no team, they are not a teammate
-    if not Player.Team then
-        Environment.TeammateStatus[Player.UserId] = false
-        return false
-    end
-
-    -- Compare the teams
-    local isTeammate = LocalPlayer.Team and Player.Team == LocalPlayer.Team
+    local isTeammate = LocalPlayer.Team and Player.Team and Player.Team == LocalPlayer.Team
     Environment.TeammateStatus[Player.UserId] = isTeammate
-    print("Checking player: ", Player.Name, "Teammate: ", isTeammate)
     return isTeammate
 end
 
 local function CreateBox(Player)
-    -- Skip box creation if the player is a teammate and Team Check is enabled
     if Environment.Settings.TeamCheck and IsPlayerTeammate(Player) then
-        return nil
+        return nil  -- Skip if the player is a teammate
     end
-    
+
     local Box = {}
     Box.BorderSquare = Drawing.new("Square")
     Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
@@ -108,12 +102,13 @@ local function UpdateBoxSettings(Box)
 end
 
 local function WrapPlayer(Player)
-    -- Skip wrapping if the player is a teammate and Team Check is enabled
     if Environment.Settings.TeamCheck and IsPlayerTeammate(Player) then
-        return
+        return  -- Skip wrapping if the player is a teammate
     end
 
     local PlayerBox = CreateBox(Player)
+    if not PlayerBox then return end
+
     Environment.WrappedPlayers[Player.UserId] = PlayerBox
 
     PlayerBox.UpdateConnection = RunService.RenderStepped:Connect(function()
@@ -135,3 +130,34 @@ Players.PlayerAdded:Connect(WrapPlayer)
 for _, Player in ipairs(Players:GetPlayers()) do
     WrapPlayer(Player)
 end
+
+local function RefreshBoxes()
+    while Environment.Settings.BoxSettings.Enabled do
+        for _, Player in pairs(Players:GetPlayers()) do
+            if Player ~= LocalPlayer and not Environment.WrappedPlayers[Player.UserId] then
+                WrapPlayer(Player)
+            end
+        end
+
+        for _, PlayerBox in pairs(Environment.WrappedPlayers) do
+            UpdateBoxSettings(PlayerBox)
+        end
+
+        wait(0.1)
+    end
+end
+
+local function toggleESP(state)
+    Environment.Settings.BoxSettings.Enabled = state
+
+    if state then
+        RefreshBoxes()
+    else
+        for _, PlayerBox in pairs(Environment.WrappedPlayers) do
+            PlayerBox.Remove()
+        end
+        Environment.WrappedPlayers = {}
+    end
+end
+
+return toggleESP
