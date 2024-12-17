@@ -47,6 +47,11 @@ local function IsPlayerTeammate(Player)
 end
 
 local function CreateBox(Player)
+    -- Skip box creation if the player is a teammate and Team Check is enabled
+    if Environment.Settings.TeamCheck and IsPlayerTeammate(Player) then
+        return nil
+    end
+    
     local Box = {}
     Box.BorderSquare = Drawing.new("Square")
     Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
@@ -112,6 +117,11 @@ local function UpdateBoxSettings(Box)
 end
 
 local function WrapPlayer(Player)
+    -- Skip wrapping if the player is a teammate and Team Check is enabled
+    if Environment.Settings.TeamCheck and IsPlayerTeammate(Player) then
+        return
+    end
+
     local PlayerBox = CreateBox(Player)
     Environment.WrappedPlayers[Player.UserId] = PlayerBox
 
