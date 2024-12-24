@@ -153,5 +153,4 @@ local toggleNameESP = function()
     end
 end
 
--- Return the toggle function for use in the main script
 return toggleNameESP
