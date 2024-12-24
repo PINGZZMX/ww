@@ -1,7 +1,6 @@
--- Ensure HeadDotSettings is globally accessible
 getgenv().Pinguin = getgenv().Pinguin or {}
 getgenv().Pinguin.HeadDotSettings = getgenv().Pinguin.HeadDotSettings or {
-    Enabled = false, -- Initially set to false; toggle button updates this
+    Enabled = false,
     Color = Color3.fromRGB(255, 255, 255),
     Transparency = 0.5,
     Thickness = 1,
@@ -14,10 +13,8 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- Data structure to store players and their associated head dots
 local playerDots = {}
 
--- Function to create and initialize a head dot
 local function CreateHeadDot(player)
     local headDot = Drawing.new("Circle")
     headDot.Visible = getgenv().Pinguin.HeadDotSettings.Enabled
@@ -27,14 +24,12 @@ local function CreateHeadDot(player)
     headDot.Filled = getgenv().Pinguin.HeadDotSettings.Filled
     headDot.NumSides = getgenv().Pinguin.HeadDotSettings.Sides
 
-    -- Attach the head dot to the player's data
     playerDots[player.UserId] = {
         player = player,
         headDot = headDot,
     }
 end
 
--- Function to update a player's head dot
 local function UpdateHeadDot(player)
     local data = playerDots[player.UserId]
     if not data or not data.player.Character then return end
@@ -52,7 +47,6 @@ local function UpdateHeadDot(player)
     end
 end
 
--- Function to remove a head dot when a player leaves
 local function RemoveHeadDot(player)
     if playerDots[player.UserId] then
         playerDots[player.UserId].headDot:Remove()
@@ -60,7 +54,6 @@ local function RemoveHeadDot(player)
     end
 end
 
--- Function to toggle all head dots
 local function ToggleHeadDots(state)
     getgenv().Pinguin.HeadDotSettings.Enabled = state
     for _, data in pairs(playerDots) do
@@ -68,14 +61,12 @@ local function ToggleHeadDots(state)
     end
 end
 
--- Update all head dots each frame
 RunService.RenderStepped:Connect(function()
     for _, data in pairs(playerDots) do
         UpdateHeadDot(data.player)
     end
 end)
 
--- Initialize head dots for all current players
 local function InitializeHeadDots()
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
@@ -84,7 +75,6 @@ local function InitializeHeadDots()
     end
 end
 
--- Player connections
 Players.PlayerAdded:Connect(function(player)
     if player ~= LocalPlayer then
         CreateHeadDot(player)
@@ -93,7 +83,6 @@ end)
 
 Players.PlayerRemoving:Connect(RemoveHeadDot)
 
--- Public API
 return {
     Initialize = InitializeHeadDots,
     ToggleHeadDotESP = ToggleHeadDots,
