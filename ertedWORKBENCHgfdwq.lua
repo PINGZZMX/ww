@@ -79,7 +79,7 @@ local function setupWorkbench()
             for _, object in pairs(data.Objects) do
                 object.Transparency = 0
                 object.CanCollide = true
-                object.CFrame = data.OriginalCFrames[object]  -- Teleport back to the original position
+                object.CFrame = data.OriginalCFrames[object]
             end
         end
         originalPositions = {}
