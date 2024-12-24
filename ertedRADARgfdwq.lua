@@ -5,7 +5,6 @@ local RS = game:GetService("RunService")
 
 repeat wait() until Player.Character and Player.Character.PrimaryPart
 
--- Lerp Color Module for health bar
 local LerpColorModule = loadstring(game:HttpGet("https://pastebin.com/raw/wRnsJeid"))()
 local HealthBarLerp = LerpColorModule:Lerp(Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 255, 0))
 
@@ -23,7 +22,6 @@ local RadarInfo = {
     Team_Check = true
 }
 
--- Initialize drawing elements (only once)
 local RadarBackground, RadarBorder
 local LocalPlayerDot
 local PlayerDots = {}
@@ -116,7 +114,6 @@ local function NewLocalDot()
 end
 
 local function LoadRadar()
-    -- Initialize elements if not already done
     if not RadarBackground then
         RadarBackground = NewCircle(0.9, RadarInfo.RadarBack, RadarInfo.Radius, true, 1)
         RadarBackground.Visible = true
@@ -135,7 +132,6 @@ local function LoadRadar()
     RadarBorder.Position = RadarInfo.Position
     LocalPlayerDot.Position = RadarInfo.Position
 
-    -- Loop through all players to display their radar dots
     for _, v in pairs(Players:GetChildren()) do
         if v.Name ~= Player.Name then
             PlaceDot(v)
@@ -144,13 +140,11 @@ local function LoadRadar()
 end
 
 local function UnloadRadar()
-    -- Remove all player dots
     for _, dot in pairs(PlayerDots) do
         dot:Remove()
     end
     PlayerDots = {}
 
-    -- Remove radar elements
     if RadarBackground then
         RadarBackground.Visible = false
     end
@@ -162,7 +156,6 @@ local function UnloadRadar()
     end
 end
 
--- Return the functions and objects needed by the main script
 return {
     LoadRadar = LoadRadar,
     UnloadRadar = UnloadRadar,
