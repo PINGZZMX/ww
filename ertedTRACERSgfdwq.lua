@@ -1,12 +1,39 @@
 local Drawing = Drawing or require(game:GetService("Drawing"))
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 getgenv().Pinguin = getgenv().Pinguin or {}
-getgenv().Pinguin.TracerModule = getgenv().Pinguin.TracerModule or { Settings = { Enabled = true, Transparency = 0.5, Thickness = 1, Color = Color3.new(1, 1, 1) }, WrappedPlayers = {} }
+getgenv().Pinguin.TracerModule = getgenv().Pinguin.TracerModule or {
+    Settings = {
+        Enabled = true,
+        Transparency = 0.5,
+        Thickness = 1,
+        Color = Color3.new(1, 1, 1),
+        TracerPosition = "Bottom" -- Options: "Bottom", "Center", "Mouse", "Top", "Left", "Right"
+    },
+    WrappedPlayers = {}
+}
 local Environment = getgenv().Pinguin.TracerModule
+
+local function getTracerStartPosition()
+    local viewportSize = Camera.ViewportSize
+    if Environment.Settings.TracerPosition == "Center" then
+        return Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+    elseif Environment.Settings.TracerPosition == "Mouse" then
+        return UserInputService:GetMouseLocation()
+    elseif Environment.Settings.TracerPosition == "Top" then
+        return Vector2.new(viewportSize.X / 2, 0)
+    elseif Environment.Settings.TracerPosition == "Left" then
+        return Vector2.new(0, viewportSize.Y / 2)
+    elseif Environment.Settings.TracerPosition == "Right" then
+        return Vector2.new(viewportSize.X, viewportSize.Y / 2)
+    else -- Default to "Bottom"
+        return Vector2.new(viewportSize.X / 2, viewportSize.Y)
+    end
+end
 
 local function Wrap(Player)
     local PlayerTable = Environment.WrappedPlayers[Player.Name]
@@ -21,9 +48,8 @@ local function Wrap(Player)
 
                 if OnScreen then
                     PlayerTable.Tracer.Visible = true
-                    PlayerTable.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                    local offset = 0
-                    PlayerTable.Tracer.To = Vector2.new(Position.X, Position.Y + offset)
+                    PlayerTable.Tracer.From = getTracerStartPosition()
+                    PlayerTable.Tracer.To = Vector2.new(Position.X, Position.Y)
 
                     PlayerTable.Tracer.Color = Environment.Settings.Color
                     PlayerTable.Tracer.Thickness = Environment.Settings.Thickness
@@ -60,7 +86,6 @@ end
 
 local function toggleTracersESP(state)
     Environment.Settings.Enabled = state
-    print("Tracers ESP:", state and "ON" or "OFF")
 
     if state then
         Load()
