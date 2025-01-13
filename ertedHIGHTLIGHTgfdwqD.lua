@@ -31,8 +31,9 @@ local function highlightPlayer(player)
 end
 
 local function onCharacterAdded(character)
-    if getgenv().Pinguin.ChamsSettings.Enabled then
-        highlightPlayer(Players:GetPlayerFromCharacter(character))
+    local player = Players:GetPlayerFromCharacter(character)
+    if player and getgenv().Pinguin.ChamsSettings.Enabled then
+        highlightPlayer(player)
     end
 end
 
