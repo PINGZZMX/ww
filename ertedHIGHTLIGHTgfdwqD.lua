@@ -62,6 +62,15 @@ local function ToggleChams(state)
                 onPlayerAdded(player)
             end
         end
+
+        -- Start the update loop to reapply highlights
+        RunService.Heartbeat:Connect(function()
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer then
+                    highlightPlayer(player)
+                end
+            end
+        end)
     else
         for _, player in pairs(Players:GetPlayers()) do
             if player.Character then
