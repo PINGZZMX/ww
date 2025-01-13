@@ -63,14 +63,22 @@ local function ToggleChams(state)
             end
         end
 
-        -- Start the update loop to reapply highlights
-        RunService.Heartbeat:Connect(function()
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer then
-                    highlightPlayer(player)
+        -- Coroutine to continuously check and apply highlights
+        coroutine.wrap(function()
+            while getgenv().Pinguin.ChamsSettings.Enabled do
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer then
+                        if player.Character then
+                            -- Check if the highlight exists, if not, apply it
+                            if not player.Character:FindFirstChild("PlayerHighlight") then
+                                highlightPlayer(player)
+                            end
+                        end
+                    end
                 end
+                wait(0.1) -- Update every 0.1 seconds
             end
-        end)
+        end)()
     else
         for _, player in pairs(Players:GetPlayers()) do
             if player.Character then
