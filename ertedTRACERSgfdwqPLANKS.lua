@@ -77,8 +77,6 @@ local function getTracerStartPosition()
 end
 
 local function Wrap(Player)
-    if not IsEnemy(Player) then return end -- Only wrap enemies
-
     local PlayerTable = Environment.WrappedPlayers[Player.Name]
 
     if not PlayerTable then
@@ -89,7 +87,8 @@ local function Wrap(Player)
             if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Environment.Settings.Enabled then
                 local Position, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
-                if OnScreen then
+                -- Update visibility based on team status
+                if OnScreen and IsEnemy(Player) then
                     PlayerTable.Tracer.Visible = true
                     PlayerTable.Tracer.From = getTracerStartPosition()
                     PlayerTable.Tracer.To = Vector2.new(Position.X, Position.Y)
