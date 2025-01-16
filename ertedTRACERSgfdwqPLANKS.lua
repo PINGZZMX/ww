@@ -59,6 +59,30 @@ local function IsEnemy(Player)
     return false
 end
 
+-- Function to check if the player is dead
+local function IsPlayerDead(Player)
+    local leaderboard = LocalPlayer.PlayerGui:FindFirstChild("LeaderboardGui")
+    if not leaderboard then return false end
+
+    local mainFrame = leaderboard:FindFirstChild("MainFrame")
+    if not mainFrame then return false end
+
+    local teamA = mainFrame:FindFirstChild("A_Players")
+    local teamB = mainFrame:FindFirstChild("B_Players")
+    if not (teamA and teamB) then return false end
+
+    -- Search both teams for the player's "Dead" status
+    local playerFrame = teamA:FindFirstChild(Player.Name) or teamB:FindFirstChild(Player.Name)
+    if not playerFrame then return false end
+
+    local deadLabel = playerFrame:FindFirstChild("Dead")
+    if deadLabel and deadLabel:IsA("ImageLabel") then
+        return deadLabel.Visible
+    end
+
+    return false
+end
+
 local function getTracerStartPosition()
     local viewportSize = Camera.ViewportSize
     if Environment.Settings.TracerPosition == "Center" then
@@ -87,8 +111,8 @@ local function Wrap(Player)
             if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Environment.Settings.Enabled then
                 local Position, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
-                -- Update visibility based on team status
-                if OnScreen and IsEnemy(Player) then
+                -- Update visibility based on team status and "Dead" check
+                if OnScreen and IsEnemy(Player) and not IsPlayerDead(Player) then
                     PlayerTable.Tracer.Visible = true
                     PlayerTable.Tracer.From = getTracerStartPosition()
                     PlayerTable.Tracer.To = Vector2.new(Position.X, Position.Y)
