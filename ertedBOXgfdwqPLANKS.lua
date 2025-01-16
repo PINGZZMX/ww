@@ -19,31 +19,68 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
             FillColor = Color3fromRGB(255, 255, 255),
             FillTransparency = 0.2,
             Thickness = 1,
-            Filled = false -- Set to false by default
+            Filled = false
         }
     },
-    WrappedPlayers = {},
-    TeammateStatus = {}
+    WrappedPlayers = {}
 }
 
 local Environment = getgenv().PinguinHub.WallHack
 
-local function IsPlayerEnemy(Player)
-    if Environment.TeammateStatus[Player.UserId] ~= nil then
-        return not Environment.TeammateStatus[Player.UserId]
-    end
+local function IsEnemy(Player)
+    local leaderboard = LocalPlayer.PlayerGui:FindFirstChild("LeaderboardGui")
+    if not leaderboard then return false end
 
-    if Environment.Settings.TeamCheck then
-        local character = workspace:FindFirstChild(Player.Name)
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            local isTeammate = character.HumanoidRootPart:FindFirstChild("TeammateLabel") ~= nil
-            Environment.TeammateStatus[Player.UserId] = isTeammate
-            return not isTeammate
+    local mainFrame = leaderboard:FindFirstChild("MainFrame")
+    if not mainFrame then return false end
+
+    local teamA = mainFrame:FindFirstChild("A_Players")
+    local teamB = mainFrame:FindFirstChild("B_Players")
+    if not (teamA and teamB) then return false end
+
+    local myTeam = nil
+
+    for _, playerLabel in pairs(teamA:GetChildren()) do
+        if playerLabel.Name == LocalPlayer.Name then
+            myTeam = "A_Players"
+            break
         end
     end
 
-    Environment.TeammateStatus[Player.UserId] = false
-    return true
+    for _, playerLabel in pairs(teamB:GetChildren()) do
+        if playerLabel.Name == LocalPlayer.Name then
+            myTeam = "B_Players"
+            break
+        end
+    end
+
+    if not myTeam then return false end -- LocalPlayer is not on any team
+
+    -- Check if the target player is in the opposite team
+    local enemyTeam = (myTeam == "A_Players") and teamB or teamA
+    for _, playerLabel in pairs(enemyTeam:GetChildren()) do
+        if playerLabel.Name == Player.Name then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function IsPlayerAlive(Player)
+    local leaderboard = LocalPlayer.PlayerGui:FindFirstChild("LeaderboardGui")
+    if not leaderboard then return false end
+
+    local mainFrame = leaderboard:FindFirstChild("MainFrame")
+    if not mainFrame then return false end
+
+    local playerFrame = mainFrame:FindFirstChild(Player.Name)
+    if not playerFrame then return false end
+
+    local deadLabel = playerFrame:FindFirstChild("Dead")
+    if not deadLabel then return true end -- Assume alive if "Dead" label is missing
+
+    return not deadLabel.Visible
 end
 
 local function CreateBox(Player)
@@ -59,26 +96,35 @@ local function CreateBox(Player)
     Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
     Box.FillSquare.Thickness = 0
     Box.FillSquare.Filled = true
-    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled -- Set visibility based on settings
+    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
 
     Box.Update = function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid and humanoid.Health > 0 and IsPlayerEnemy(Player) then
-                local height = Player.Character.HumanoidRootPart.Size.Y * 2200
-                local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
+            if IsEnemy(Player) and IsPlayerAlive(Player) then
+                local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    local height = Player.Character.HumanoidRootPart.Size.Y * 2200
+                    local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
-                if OnScreen then
-                    local sizeX = 2000 / Pos.Z
-                    local sizeY = height / Pos.Z
+                    if OnScreen then
+                        local currentFOV = Camera.FieldOfView
+                        local baseFOV = 70 -- Adjust based on original scaling
+                        local scalingFactor = baseFOV / currentFOV
 
-                    Box.BorderSquare.Size = Vector2.new(sizeX, sizeY)
-                    Box.BorderSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                    Box.BorderSquare.Visible = true
+                        local sizeX = (2000 / Pos.Z) * scalingFactor
+                        local sizeY = (height / Pos.Z) * scalingFactor
 
-                    Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
-                    Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
+                        Box.BorderSquare.Size = Vector2new(sizeX, sizeY)
+                        Box.BorderSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                        Box.BorderSquare.Visible = true
+
+                        Box.FillSquare.Size = Vector2new(sizeX, sizeY)
+                        Box.FillSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                        Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
+                    else
+                        Box.BorderSquare.Visible = false
+                        Box.FillSquare.Visible = false
+                    end
                 else
                     Box.BorderSquare.Visible = false
                     Box.FillSquare.Visible = false
@@ -101,44 +147,16 @@ local function CreateBox(Player)
     return Box
 end
 
-local function UpdateBoxSettings(Box)
-    Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color
-    Box.BorderSquare.Transparency = Environment.Settings.BoxSettings.Transparency
-    Box.BorderSquare.Thickness = Environment.Settings.BoxSettings.Thickness
-    Box.FillSquare.Color = Environment.Settings.BoxSettings.FillColor
-    Box.FillSquare.Transparency = Environment.Settings.BoxSettings.FillTransparency
-    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
-end
-
-local function WrapPlayer(Player)
-    local PlayerBox = CreateBox(Player)
-    Environment.WrappedPlayers[Player.UserId] = PlayerBox
-
-    PlayerBox.UpdateConnection = RunService.RenderStepped:Connect(function()
-        PlayerBox.Update()
-    end)
-
-    Player.AncestryChanged:Connect(function(_, Parent)
-        if not Parent then
-            PlayerBox.Remove()
-            Environment.WrappedPlayers[Player.UserId] = nil
-            Environment.TeammateStatus[Player.UserId] = nil
-            PlayerBox.UpdateConnection:Disconnect()
-            PlayerBox = nil
-        end
-    end)
-end
-
 local function RefreshBoxes()
     while Environment.Settings.BoxSettings.Enabled do
         for _, Player in pairs(Players:GetPlayers()) do
             if Player ~= LocalPlayer and not Environment.WrappedPlayers[Player.UserId] then
-                WrapPlayer(Player)
+                Environment.WrappedPlayers[Player.UserId] = CreateBox(Player)
             end
         end
 
         for _, PlayerBox in pairs(Environment.WrappedPlayers) do
-            UpdateBoxSettings(PlayerBox)
+            PlayerBox.Update()
         end
 
         wait(0.1)
