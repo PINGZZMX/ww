@@ -19,7 +19,7 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
             FillColor = Color3fromRGB(255, 255, 255),
             FillTransparency = 0.2,
             Thickness = 1,
-            Filled = false
+            Filled = false -- Set to false by default
         }
     },
     WrappedPlayers = {}
@@ -27,6 +27,7 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
 
 local Environment = getgenv().PinguinHub.WallHack
 
+-- Function to determine if the player is on the opposite team
 local function IsEnemy(Player)
     local leaderboard = LocalPlayer.PlayerGui:FindFirstChild("LeaderboardGui")
     if not leaderboard then return false end
@@ -67,22 +68,6 @@ local function IsEnemy(Player)
     return false
 end
 
-local function IsPlayerAlive(Player)
-    local leaderboard = LocalPlayer.PlayerGui:FindFirstChild("LeaderboardGui")
-    if not leaderboard then return false end
-
-    local mainFrame = leaderboard:FindFirstChild("MainFrame")
-    if not mainFrame then return false end
-
-    local playerFrame = mainFrame:FindFirstChild(Player.Name)
-    if not playerFrame then return false end
-
-    local deadLabel = playerFrame:FindFirstChild("Dead")
-    if not deadLabel then return true end -- Assume alive if "Dead" label is missing
-
-    return not deadLabel.Visible
-end
-
 local function CreateBox(Player)
     local Box = {}
     Box.BorderSquare = Drawing.new("Square")
@@ -99,32 +84,29 @@ local function CreateBox(Player)
     Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
 
     Box.Update = function()
-        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            if IsEnemy(Player) and IsPlayerAlive(Player) then
-                local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-                if humanoid then
-                    local height = Player.Character.HumanoidRootPart.Size.Y * 2200
-                    local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and IsEnemy(Player) then
+            local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                local height = Player.Character.HumanoidRootPart.Size.Y * 2200
+                local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
-                    if OnScreen then
-                        local currentFOV = Camera.FieldOfView
-                        local baseFOV = 70 -- Adjust based on original scaling
-                        local scalingFactor = baseFOV / currentFOV
+                if OnScreen then
+                    -- Scale the box size based on the camera's FOV
+                    local baseFOV = 70 -- The base FOV for which the size is currently calibrated
+                    local currentFOV = Camera.FieldOfView
+                    local fovScale = baseFOV / currentFOV
 
-                        local sizeX = (2000 / Pos.Z) * scalingFactor
-                        local sizeY = (height / Pos.Z) * scalingFactor
+                    local sizeX = (2000 / Pos.Z) * fovScale
+                    local sizeY = (height / Pos.Z) * fovScale
 
-                        Box.BorderSquare.Size = Vector2new(sizeX, sizeY)
-                        Box.BorderSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                        Box.BorderSquare.Visible = true
+                    Box.BorderSquare.Size = Vector2.new(sizeX, sizeY)
+                    Box.BorderSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                    Box.BorderSquare.Visible = true
 
-                        Box.FillSquare.Size = Vector2new(sizeX, sizeY)
-                        Box.FillSquare.Position = Vector2new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                        Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
-                    else
-                        Box.BorderSquare.Visible = false
-                        Box.FillSquare.Visible = false
-                    end
+                    Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
+                    Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+
+                    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
                 else
                     Box.BorderSquare.Visible = false
                     Box.FillSquare.Visible = false
@@ -147,16 +129,28 @@ local function CreateBox(Player)
     return Box
 end
 
+local function WrapPlayer(Player)
+    local PlayerBox = CreateBox(Player)
+    Environment.WrappedPlayers[Player.UserId] = PlayerBox
+
+    PlayerBox.UpdateConnection = RunService.RenderStepped:Connect(function()
+        PlayerBox.Update()
+    end)
+
+    Player.AncestryChanged:Connect(function(_, Parent)
+        if not Parent then
+            PlayerBox.Remove()
+            Environment.WrappedPlayers[Player.UserId] = nil
+        end
+    end)
+end
+
 local function RefreshBoxes()
     while Environment.Settings.BoxSettings.Enabled do
         for _, Player in pairs(Players:GetPlayers()) do
-            if Player ~= LocalPlayer and not Environment.WrappedPlayers[Player.UserId] then
-                Environment.WrappedPlayers[Player.UserId] = CreateBox(Player)
+            if Player ~= LocalPlayer and not Environment.WrappedPlayers[Player.UserId] and IsEnemy(Player) then
+                WrapPlayer(Player)
             end
-        end
-
-        for _, PlayerBox in pairs(Environment.WrappedPlayers) do
-            PlayerBox.Update()
         end
 
         wait(0.1)
