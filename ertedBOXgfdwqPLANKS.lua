@@ -110,29 +110,35 @@ local function CreateBox(Player)
 
     Box.Update = function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and IsAlive(Player) and IsEnemy(Player) then
-            local height = Player.Character.HumanoidRootPart.Size.Y * 2200
-            local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
+            local distance = (Player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).magnitude
+            if distance <= 250 then -- Check if the enemy is within 250 studs
+                local height = Player.Character.HumanoidRootPart.Size.Y * 2200
+                local Pos, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
-            if OnScreen then
-                local sizeX = 2000 / Pos.Z
-                local sizeY = height / Pos.Z
+                if OnScreen then
+                    local sizeX = 2000 / Pos.Z
+                    local sizeY = height / Pos.Z
 
-                Box.BorderSquare.Size = Vector2.new(sizeX, sizeY)
-                Box.BorderSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                Box.BorderSquare.Visible = true
+                    Box.BorderSquare.Size = Vector2.new(sizeX, sizeY)
+                    Box.BorderSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                    Box.BorderSquare.Visible = true
 
-                Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
-                Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
-                Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
+                    Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
+                    Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
+                    Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
 
-                if Environment.Settings.WallCheckEnabled then
-                    if IsPlayerBehindWall(Player) then
-                        Box.BorderSquare.Color = Color3.fromRGB(255, 0, 0)  -- Red if behind wall
+                    if Environment.Settings.WallCheckEnabled then
+                        if IsPlayerBehindWall(Player) then
+                            Box.BorderSquare.Color = Color3.fromRGB(255, 0, 0)  -- Red if behind wall
+                        else
+                            Box.BorderSquare.Color = Color3.fromRGB(0, 255, 0)  -- Green if visible
+                        end
                     else
-                        Box.BorderSquare.Color = Color3.fromRGB(0, 255, 0)  -- Green if visible
+                        Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color  -- Default color
                     end
                 else
-                    Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color  -- Default color
+                    Box.BorderSquare.Visible = false
+                    Box.FillSquare.Visible = false
                 end
             else
                 Box.BorderSquare.Visible = false
