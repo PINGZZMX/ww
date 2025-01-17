@@ -18,7 +18,6 @@ getgenv().Pinguin.TracerModule = getgenv().Pinguin.TracerModule or {
 }
 local Environment = getgenv().Pinguin.TracerModule
 
--- Function to determine if the player is on the opposite team
 local function IsEnemy(Player)
     local leaderboard = LocalPlayer.PlayerGui:FindFirstChild("LeaderboardGui")
     if not leaderboard then return false end
@@ -46,9 +45,8 @@ local function IsEnemy(Player)
         end
     end
 
-    if not myTeam then return false end -- LocalPlayer is not on any team
+    if not myTeam then return false end
 
-    -- Check if the target player is in the opposite team
     local enemyTeam = (myTeam == "A_Players") and teamB or teamA
     for _, playerLabel in pairs(enemyTeam:GetChildren()) do
         if playerLabel.Name == Player.Name then
@@ -59,7 +57,6 @@ local function IsEnemy(Player)
     return false
 end
 
--- Function to check if the player is dead
 local function IsPlayerDead(Player)
     local leaderboard = LocalPlayer.PlayerGui:FindFirstChild("LeaderboardGui")
     if not leaderboard then return false end
@@ -71,7 +68,6 @@ local function IsPlayerDead(Player)
     local teamB = mainFrame:FindFirstChild("B_Players")
     if not (teamA and teamB) then return false end
 
-    -- Search both teams for the player's "Dead" status
     local playerFrame = teamA:FindFirstChild(Player.Name) or teamB:FindFirstChild(Player.Name)
     if not playerFrame then return false end
 
@@ -81,6 +77,19 @@ local function IsPlayerDead(Player)
     end
 
     return false
+end
+
+local function isVisible(Player)
+    local character = Player.Character
+    if not character then return false end
+
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return false end
+
+    local ray = Ray.new(Camera.CFrame.Position, (rootPart.Position - Camera.CFrame.Position).unit * (rootPart.Position - Camera.CFrame.Position).magnitude)
+    local hitPart = workspace:FindPartOnRay(ray, character)
+
+    return hitPart == nil
 end
 
 local function getTracerStartPosition()
@@ -95,7 +104,7 @@ local function getTracerStartPosition()
         return Vector2.new(0, viewportSize.Y / 2)
     elseif Environment.Settings.TracerPosition == "Right" then
         return Vector2.new(viewportSize.X, viewportSize.Y / 2)
-    else -- Default to "Bottom"
+    else
         return Vector2.new(viewportSize.X / 2, viewportSize.Y)
     end
 end
@@ -111,13 +120,18 @@ local function Wrap(Player)
             if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Environment.Settings.Enabled then
                 local Position, OnScreen = Camera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
 
-                -- Update visibility based on team status and "Dead" check
                 if OnScreen and IsEnemy(Player) and not IsPlayerDead(Player) then
                     PlayerTable.Tracer.Visible = true
                     PlayerTable.Tracer.From = getTracerStartPosition()
                     PlayerTable.Tracer.To = Vector2.new(Position.X, Position.Y)
 
-                    PlayerTable.Tracer.Color = Environment.Settings.Color
+                    -- Wall check logic
+                    if isVisible(Player) then
+                        PlayerTable.Tracer.Color = Color3.new(0, 255, 0) -- Green if visible
+                    else
+                        PlayerTable.Tracer.Color = Color3.new(255, 0, 0) -- Red if behind a wall
+                    end
+                    
                     PlayerTable.Tracer.Thickness = Environment.Settings.Thickness
                     PlayerTable.Tracer.Transparency = Environment.Settings.Transparency
                 else
