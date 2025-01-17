@@ -11,6 +11,7 @@ getgenv().PinguinHub.WallHack = getgenv().PinguinHub.WallHack or {
     Settings = {
         Enabled = true,
         TeamCheck = true,
+        WallCheckEnabled = false, -- Added Wall Check toggle
         BoxSettings = {
             Enabled = true,
             Type = 1,
@@ -83,6 +84,15 @@ local function IsAlive(Player)
     return humanoid and humanoid.Health > 0
 end
 
+local function IsPlayerBehindWall(player)
+    local origin = Camera.CFrame.Position
+    local target = player.Character.HumanoidRootPart.Position
+    local ray = Ray.new(origin, (target - origin).unit * (origin - target).magnitude)
+    local hitPart, hitPosition = workspace:FindPartOnRay(ray)
+
+    return hitPart and not player.Character:FindFirstChild(hitPart.Name)
+end
+
 local function CreateBox(Player)
     local Box = {}
     Box.BorderSquare = Drawing.new("Square")
@@ -114,6 +124,16 @@ local function CreateBox(Player)
                 Box.FillSquare.Size = Vector2.new(sizeX, sizeY)
                 Box.FillSquare.Position = Vector2.new(Pos.X - sizeX / 2, Pos.Y - sizeY / 2.475)
                 Box.FillSquare.Visible = Environment.Settings.BoxSettings.Filled
+
+                if Environment.Settings.WallCheckEnabled then
+                    if IsPlayerBehindWall(Player) then
+                        Box.BorderSquare.Color = Color3.fromRGB(255, 0, 0)  -- Red if behind wall
+                    else
+                        Box.BorderSquare.Color = Color3.fromRGB(0, 255, 0)  -- Green if visible
+                    end
+                else
+                    Box.BorderSquare.Color = Environment.Settings.BoxSettings.Color  -- Default color
+                end
             else
                 Box.BorderSquare.Visible = false
                 Box.FillSquare.Visible = false
