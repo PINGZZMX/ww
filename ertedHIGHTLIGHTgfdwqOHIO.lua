@@ -17,22 +17,20 @@ local function lightenColor(color, factor)
 end
 
 local function highlightPlayer(player)
-    if player.Character then
-        local highlight = player.Character:FindFirstChild("PlayerHighlight") or Instance.new("Highlight")
-        highlight.Name = "PlayerHighlight"
-        highlight.FillColor = getgenv().Pinguin.ChamsSettings.Color
-        highlight.FillTransparency = 1
-        highlight.OutlineColor = lightenColor(getgenv().Pinguin.ChamsSettings.Color, 0.3)
-        highlight.Parent = player.Character
-    end
+    if not player.Character then return end
+    local highlight = player.Character:FindFirstChild("PlayerHighlight") or Instance.new("Highlight")
+    highlight.Name = "PlayerHighlight"
+    highlight.FillColor = getgenv().Pinguin.ChamsSettings.Color
+    highlight.FillTransparency = 1
+    highlight.OutlineColor = lightenColor(getgenv().Pinguin.ChamsSettings.Color, 0.3)
+    highlight.Parent = player.Character
 end
 
 local function refreshChams()
-    if getgenv().Pinguin.ChamsSettings.Enabled then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer then
-                highlightPlayer(player)
-            end
+    if not getgenv().Pinguin.ChamsSettings.Enabled then return end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            highlightPlayer(player)
         end
     end
 end
@@ -43,9 +41,11 @@ local function ToggleChams(state)
         refreshChams()
     else
         for _, player in ipairs(Players:GetPlayers()) do
-            local highlight = player.Character and player.Character:FindFirstChild("PlayerHighlight")
-            if highlight then
-                highlight:Destroy()
+            if player.Character then
+                local highlight = player.Character:FindFirstChild("PlayerHighlight")
+                if highlight then
+                    highlight:Destroy()
+                end
             end
         end
     end
@@ -60,9 +60,7 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 RunService.Heartbeat:Connect(function()
-    if getgenv().Pinguin.ChamsSettings.Enabled then
-        refreshChams()
-    end
+    refreshChams()
 end)
 
 return ToggleChams
